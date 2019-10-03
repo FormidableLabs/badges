@@ -2,4 +2,4 @@
 
 All notable changes to this project will be documented on the [Releases][] page.
 
-[Releases]: https://github.com/exogen/badge-matrix/releases
+[releases]: https://github.com/FormidableLabs/badges/releases

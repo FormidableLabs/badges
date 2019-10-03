@@ -1,0 +1,17 @@
+version: 0.2
+
+env:
+  git-credential-helper: yes
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+    commands:
+      # Uncomment to test against a branch of terraform-aws-serverless
+      # - export TERRAFORM_AWS_SERVERLESS_BRANCH=feature/fix-canary-iam
+      - bash scripts/install.sh
+
+  build:
+    commands:
+      - yarn cd

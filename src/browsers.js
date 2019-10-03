@@ -1,12 +1,15 @@
-import _ from 'lodash'
-import measureTextWidth from './text'
-import marko from 'marko'
+'use strict';
 
-const template = marko.load(require.resolve('../browsers.svg'), {
+const _ = require('lodash');
+const marko = require('marko');
+
+const { measureTextWidth } = require('./text');
+
+const template = marko.load(require.resolve('./browsers.svg'), {
   writeToDisk: false
-})
+});
 
-export const BROWSERS = {
+const BROWSERS = {
   android: {
     sauceName: 'android',
     name: 'Android',
@@ -70,19 +73,19 @@ export const BROWSERS = {
     longName: 'Safari',
     logo: '#safari'
   }
-}
+};
 
 const COLORS = {
   green: '#4c1',
   red: '#e05d44',
   gray: '#9f9f9f'
-}
+};
 
 const STATUS_COLORS = {
   passed: 'green',
   failed: 'red',
   default: 'gray'
-}
+};
 
 const LOGOS_OPTIONS = {
   inside: 'inside',
@@ -90,7 +93,7 @@ const LOGOS_OPTIONS = {
   none: 'none',
   true: 'inside',
   false: 'none'
-}
+};
 
 const LABELS_OPTIONS = {
   sauceName: 'sauceName',
@@ -100,133 +103,149 @@ const LABELS_OPTIONS = {
   none: 'none',
   true: 'shortName',
   false: 'none'
-}
+};
 
 const SORT_BY_OPTIONS = {
   sauceName: 'sauceName',
   name: 'name',
   shortName: 'shortName',
   longName: 'longName'
-}
+};
 
 const VERSION_DIVIDER_OPTIONS = {
   line: 'line',
   none: 'none',
   true: 'line',
   false: 'none'
-}
+};
 
 const STYLE_OPTIONS = {
   flat: 'flat',
   'flat-square': 'flat-square'
-}
+};
 
-function cleanOptions (options = {}) {
-  const cleaned = {}
-  cleaned.logos = LOGOS_OPTIONS[options.logos] || 'inside'
-  cleaned.labels = LABELS_OPTIONS[options.labels] || 'shortName'
-  cleaned.sortBy = SORT_BY_OPTIONS[options.sortBy] ||
-    (cleaned.labels === 'none' ? 'name' : cleaned.labels)
-  cleaned.versionDivider = VERSION_DIVIDER_OPTIONS[options.versionDivider] ||
-    'none'
-  cleaned.style = STYLE_OPTIONS[options.style] || 'flat'
+function cleanOptions(options = {}) {
+  const cleaned = {};
+  cleaned.logos = LOGOS_OPTIONS[options.logos] || 'inside';
+  cleaned.labels = LABELS_OPTIONS[options.labels] || 'shortName';
+  cleaned.sortBy =
+    SORT_BY_OPTIONS[options.sortBy] ||
+    (cleaned.labels === 'none' ? 'name' : cleaned.labels);
+  cleaned.versionDivider =
+    VERSION_DIVIDER_OPTIONS[options.versionDivider] || 'none';
+  cleaned.style = STYLE_OPTIONS[options.style] || 'flat';
   if (Array.isArray(options.exclude)) {
-    cleaned.exclude = options.exclude
+    cleaned.exclude = options.exclude;
   } else if (typeof options.exclude === 'string') {
-    cleaned.exclude = options.exclude.split(',')
+    cleaned.exclude = options.exclude.split(',');
   } else {
-    cleaned.exclude = []
+    cleaned.exclude = [];
   }
-  return cleaned
+  return cleaned;
 }
 
-export function getGroupedBrowsers (browsers) {
+function getGroupedBrowsers(browsers) {
   return _.map(browsers, (versions, key) => {
     return {
       browser: key,
       versions: _.sortBy(versions, (browser, version) => {
-        const versionNumber = parseFloat(version)
-        return isNaN(versionNumber) ? version : versionNumber
+        const versionNumber = parseFloat(version);
+        return isNaN(versionNumber) ? version : versionNumber;
       })
-    }
-  })
+    };
+  });
 }
 
-function getBadgeLayout (browserGroup, options) {
-  const label = {}
-  const browserInfo = BROWSERS[browserGroup.browser] || {}
-  label.translate = 0
-  label.logo = options.logos === 'none' ? null : browserInfo.logo
-  label.text = options.labels === 'none' ? ''
-    : (browserInfo[options.labels] || browserGroup.browser)
-  const logoWidth = label.logo ? (14 + (label.text ? 4 : 0)) : 0
-  const textWidth = label.text ? measureTextWidth(label.text) : 0
-  const paddingLeft = (textWidth || logoWidth) ? 6 : 0
-  const paddingRight = (textWidth || logoWidth) ? 4 : 0
-  label.width = paddingLeft + logoWidth + textWidth + paddingRight
-  label.x = logoWidth + (label.width - logoWidth) / 2
-  const versions = []
+// eslint-disable-next-line complexity
+function getBadgeLayout(browserGroup, options) {
+  const label = {};
+  const browserInfo = BROWSERS[browserGroup.browser] || {};
+  label.translate = 0;
+  label.logo = options.logos === 'none' ? null : browserInfo.logo;
+  label.text =
+    options.labels === 'none'
+      ? ''
+      : browserInfo[options.labels] || browserGroup.browser;
+  const logoWidth = label.logo ? 14 + (label.text ? 4 : 0) : 0;
+  const textWidth = label.text ? measureTextWidth(label.text) : 0;
+  const paddingLeft = textWidth || logoWidth ? 6 : 0;
+  const paddingRight = textWidth || logoWidth ? 4 : 0;
+  label.width = paddingLeft + logoWidth + textWidth + paddingRight;
+  label.x = logoWidth + (label.width - logoWidth) / 2;
+  const versions = [];
   browserGroup.versions.forEach((browser, index, array) => {
-    const isFirst = !versions.length
-    const isLast = index === array.length - 1
-    const lastIndex = versions.length - 1
-    const version = {}
-    version.translate = isFirst ? label.width
-      : (versions[lastIndex].translate + versions[lastIndex].width)
-    version.text = browser.version
-    const colorName = STATUS_COLORS[browser.status] || STATUS_COLORS.default
-    version.fill = COLORS[colorName]
-    version.divider = options.versionDivider
+    const isFirst = !versions.length;
+    const isLast = index === array.length - 1;
+    const lastIndex = versions.length - 1;
+    const version = {};
+    version.translate = isFirst
+      ? label.width
+      : versions[lastIndex].translate + versions[lastIndex].width;
+    version.text = browser.version;
+    const colorName = STATUS_COLORS[browser.status] || STATUS_COLORS.default;
+    version.fill = COLORS[colorName];
+    version.divider = options.versionDivider;
     // Text should be at least 12px wide, so that combined with its padding it
     // at least makes a square (badges are 20px tall) and never a skinny
     // rectangle.
-    const textWidth = Math.max(12, measureTextWidth(version.text))
-    version.width = 4 + textWidth + (isLast ? 6 : 4)
-    version.x = version.width / 2 - (isLast ? 1 : 0)
-    versions.push(version)
-  })
+    const versionTextWidth = Math.max(12, measureTextWidth(version.text));
+    version.width = 4 + versionTextWidth + (isLast ? 6 : 4);
+    version.x = version.width / 2 - (isLast ? 1 : 0);
+    versions.push(version);
+  });
   return {
     label,
     versions,
     browser: browserGroup.browser,
-    width: label.width + versions.reduce((previous, current) => {
-      return previous + current.width
-    }, 0)
-  }
+    width:
+      label.width +
+      versions.reduce((previous, current) => {
+        return previous + current.width;
+      }, 0)
+  };
 }
 
-function getBrowsersLayout (context) {
-  const layout = {}
-  const options = cleanOptions(context.options)
-  layout.style = options.style
-  const shouldInclude = (browserGroup) => {
-    return !options.exclude.length ||
+function getBrowsersLayout(context) {
+  const layout = {};
+  const options = cleanOptions(context.options);
+  layout.style = options.style;
+  const shouldInclude = browserGroup => {
+    return (
+      !options.exclude.length ||
       options.exclude.indexOf(browserGroup.browser) === -1
-  }
-  let browsers = context.browsers.filter(shouldInclude)
+    );
+  };
+  let browsers = context.browsers.filter(shouldInclude);
   // Sort browser list by the `sortBy` option.
-  browsers = _.sortBy(browsers, (browserGroup) => {
-    const browserInfo = BROWSERS[browserGroup.browser] || {}
-    return browserInfo[options.sortBy] || browserGroup.browser
-  })
+  browsers = _.sortBy(browsers, browserGroup => {
+    const browserInfo = BROWSERS[browserGroup.browser] || {};
+    return browserInfo[options.sortBy] || browserGroup.browser;
+  });
   // Generate the badge layout for each browser.
   layout.badges = browsers.reduce((badges, browserGroup) => {
     if (shouldInclude(browserGroup)) {
-      const isFirst = !badges.length
-      const lastIndex = badges.length - 1
-      const badge = getBadgeLayout(browserGroup, options)
-      badge.translate = isFirst ? 0
-        : (badges[lastIndex].translate + badges[lastIndex].width + 4)
-      badges.push(badge)
+      const isFirst = !badges.length;
+      const lastIndex = badges.length - 1;
+      const badge = getBadgeLayout(browserGroup, options);
+      badge.translate = isFirst
+        ? 0
+        : badges[lastIndex].translate + badges[lastIndex].width + 4;
+      badges.push(badge);
     }
-    return badges
-  }, [])
-  const lastBadge = layout.badges[layout.badges.length - 1]
-  layout.width = lastBadge ? (lastBadge.translate + lastBadge.width) : 0
-  return layout
+    return badges;
+  }, []);
+  const lastBadge = layout.badges[layout.badges.length - 1];
+  layout.width = lastBadge ? lastBadge.translate + lastBadge.width : 0;
+  return layout;
 }
 
-export default function getBrowsersBadge (context) {
-  const layout = getBrowsersLayout(context)
-  return template.renderSync({ ...context, layout })
+function getBrowsersBadge(context) {
+  const layout = getBrowsersLayout(context);
+  return template.renderToString({ ...context, layout });
 }
+
+module.exports = {
+  BROWSERS,
+  getGroupedBrowsers,
+  getBrowsersBadge
+};
