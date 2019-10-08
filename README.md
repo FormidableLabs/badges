@@ -296,3 +296,27 @@ the server’s `TRAVIS_ENDPOINT` environment variable. You can force the public
   `style`
 
   Same as the `/sauce/:user` endpoint above.
+
+## Infra
+
+The infrastructure for this project is automated through CI/CD. Pull requests receive comments when they pass CI that give links to both a PR preview environment and to CodePipeline for manually approving production deploys.
+
+We use "support tiers" for managing resources shared across PR environments and for emulating multi-account isolation of prod and nonprod via IAM in a single account. These "tiers" are the only manual setup required to launch this project. In the future, we may support, and migrate to, multiple AWS accounts.
+
+### Initial setup
+
+- Set up your AWS credentials. We recommend [aws-vault](https://github.com/99designs/aws-vault).
+- Ask @tptee or @ryan-roemer for Fastly, Sauce, and Github credentials.
+- Create the nonprod tier with the below command:
+
+```bash
+FASTLY_API_TOKEN=redacted \
+SAUCE_ACCESS_KEY=redacted \
+GITHUB_TOKEN=redacted \
+SERVICE_NAME=badges \
+TIER=nonprod \
+terragrunt apply --terragrunt-working-dir terraform/admin
+```
+
+- Create the prod tier by repeating the previous command with `TIER=prod`.
+- Open a PR and watch the magic happen!

@@ -7,6 +7,7 @@ locals {
 resource "aws_s3_bucket" "artifacts" {
   bucket = "${local.prefix}-artifacts-${local.account_id}"
   acl    = "private"
+  force_destroy = true
 
   # CodePipeline requires versioned buckets.
   versioning {
