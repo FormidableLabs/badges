@@ -96,6 +96,10 @@ data "aws_iam_policy_document" "ci_role" {
       "s3:PutEncryptionConfiguration",
       "s3:GetBucketPublicAccessBlock",
       "s3:PutBucketPublicAccessBlock",
+      "s3:GetBucketAcl",
+      "s3:PutBucketAcl",
+      "s3:GetBucketLogging",
+      "s3:PutBucketLogging",
     ]
 
     resources = ["arn:${local.partition}:s3:::${local.prefix}-*-remote-state"]

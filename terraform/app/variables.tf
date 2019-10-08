@@ -26,6 +26,10 @@ variable "root_domain_name_wildcard_certificate_arn" {
   description = "The ARN of a wildcard ACM certificate for root_domain_name."
 }
 
+variable "fastly_cname_domain" {
+  description = "The Fastly domain to point to root domain CNAME to."
+}
+
 locals {
   prefix = "tf-${var.service_name}-${var.tier}-${var.stage}"
 

@@ -25,4 +25,6 @@ inputs = {
   root_domain_name                          = "formidable.com"
   root_domain_name_zone_id                  = "Z11V9C4SUTC8Q6"
   root_domain_name_wildcard_certificate_arn = "arn:aws:acm:us-east-1:819013376994:certificate/2118b0cb-c121-4c65-a1a9-fe2b986335f1"
+
+  fastly_cname_domain = "j3.shared.global.fastly.net"
 }

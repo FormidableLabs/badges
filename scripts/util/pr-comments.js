@@ -23,12 +23,12 @@ const getOctokitClient = memoize(async (name, tier) => {
 const postPrEnvironmentLink = async ({ name, stage, tier }) => {
   const octokit = await getOctokitClient(name, tier);
 
-  const endpoint = `https://${name}-${tier}-${stage}.${ROOT_DOMAIN}`;
+  const endpoint = `https://${name}-${tier}-${stage}.freetls.fastly.net`;
 
   const body = `
 Deployed PR environment to ${endpoint}!
 
-If you are an admin, deploy to production from the [pipeline page in AWS](https://${region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/tf-${name}-${tier}-${stage}-cd/view?region=${region}).`;
+If you are an admin, deploy to production from the [pipeline page in AWS](https://${region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/tf-${name}-${tier}-${stage}/view?region=${region}).`;
 
   // convert stage name pr7 to the number 7 for the issues API
   const issueNumber = stage.replace('pr', '');
