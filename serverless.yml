@@ -1,0 +1,74 @@
+service: sls-${self:custom.service}-${self:custom.tier}
+
+package:
+  # The CD project provides this environment variable to use an existing
+  # Serverless artifact, bypassing the packaging step entirely
+  artifact: "${env:SLS_ARTIFACT, ''}"
+  include:
+    # Root level
+    - "!*"
+    - "package.json"
+    # Source directories
+    - "src/**"
+    - "!aws/**"
+    - "!terraform"
+    - "!terraform/**"
+    # General exclusions
+    - "!**/.DS_Store"
+    - "!**/yarn.lock"
+    - "!**/package-lock.json"
+    - "!**/node_modules/.yarn-integrity"
+    - "!**/node_modules/.cache/**"
+    # Dependencies
+    - "!node_modules/aws-sdk"
+    - "!node_modules/aws-sdk/**"
+    - "!**/node_modules/aws-sdk"
+    - "!**/node_modules/aws-sdk/**"
+    - "!**/node_modules/*/CHANGELOG.md"
+    - "!**/node_modules/*/HISTORY.md"
+    - "!**/node_modules/*/LICENSE"
+    - "!**/node_modules/*/README.md"
+
+custom:
+  service: ${env:SERVICE_NAME}
+  region: ${opt:region, env:AWS_REGION}
+  tier: ${env:TIER}
+  stage: ${opt:stage, env:STAGE}
+
+plugins:
+  - serverless-jetpack
+  - serverless-plugin-canary-deployments
+
+provider:
+  name: aws
+  # Required: import the default role that terraform-aws-serverless generates.
+  role:
+    Fn::ImportValue: tf-${self:custom.service}-${self:custom.tier}-LambdaExecutionRoleArn
+  endpointType: regional
+  runtime: nodejs10.x
+  region: ${self:custom.region}
+  stage: ${self:custom.stage}
+  environment:
+    TIER: ${self:custom.tier}
+    STAGE: ${self:custom.stage}
+    SERVICE_NAME: ${self:custom.service}
+  timeout: 30 # seconds (`300` max)
+  memorySize: 128 # MB value (`1024` default)
+
+functions:
+  app:
+    handler: src/index.handler
+    events:
+      - http: ANY /
+      - http: "ANY /{proxy+}"
+    deploymentSettings:
+      # type: Canary10Percent5Minutes
+      type: AllAtOnce
+      alias: Live
+
+resources:
+  Resources:
+    AppLambdaFunction:
+      Properties:
+        TracingConfig:
+          Mode: Active

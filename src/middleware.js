@@ -1,25 +1,27 @@
-import interceptor from 'express-interceptor'
-import SVGO from 'svgo'
+'use strict';
+
+const interceptor = require('express-interceptor');
+const SVGO = require('svgo');
 
 /**
  * SVGO middleware: optimize any SVG response.
  */
-export function svgo (options) {
-  const svgo = new SVGO(options)
+module.exports = function svgoMiddleware(options) {
+  const svgo = new SVGO(options);
   return interceptor((req, res) => {
     return {
-      isInterceptable: function () {
-        return /image\/svg\+xml(;|$)/.test(res.get('content-type'))
+      isInterceptable() {
+        return /image\/svg\+xml(;|$)/.test(res.get('content-type'));
       },
-      intercept: function (body, send) {
+      intercept(body, send) {
         if (body) {
-          svgo.optimize(body, (result) => {
-            send(result.data)
-          })
+          svgo.optimize(body, result => {
+            send(result.data);
+          });
         } else {
-          send(body)
+          send(body);
         }
       }
-    }
-  })
-}
+    };
+  });
+};

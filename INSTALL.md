@@ -3,8 +3,8 @@
 Clone the repository:
 
 ```sh
-git clone https://github.com/exogen/badge-matrix.git
-cd badge-matrix
+git clone https://github.com/FormidableLabs/badges.git
+cd badges
 ```
 
 Install dependencies. Note that one of the dependencies is
@@ -29,7 +29,6 @@ Then start the server:
 ```sh
 npm run start
 ```
-
 
 ## Deploy to Heroku
 
