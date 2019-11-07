@@ -320,3 +320,12 @@ terragrunt apply --terragrunt-working-dir terraform/admin
 
 - Create the prod tier by repeating the previous command with `TIER=prod`.
 - Open a PR and watch the magic happen!
+
+### Deploying from a pull request (Formidables only)
+
+- Log in to the Formidable AWS account.
+- Open a pull request and wait for the CI check to complete.
+- When CI completes, it posts a comment with links to the PR environment and the deployment pipeline. Verify your changes in the PR environment, then click the link to the pipeline page.
+- On the pipeline page, you'll see an approval step for deploying to production. Click "Review" and then "Approve" in the modal that pops up.
+- After the pipeline deploys to production, it posts a link to production in the PR. Verify your changes in prod.
+- Merge the pull request!
