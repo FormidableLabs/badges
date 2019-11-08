@@ -29,28 +29,3 @@ Then start the server:
 ```sh
 npm run start
 ```
-
-## Deploy to Heroku
-
-First associate the repository with an app.
-
-Create a new app:
-
-```sh
-heroku create my-badges-app
-```
-
-…or if you already have one:
-
-```sh
-heroku git:remote -a my-badges-app
-```
-
-Then simply run:
-
-```sh
-npm run deploy
-```
-
-The deploy script will ensure that you have a `heroku` remote, set your
-app’s buildpack, and push.
