@@ -8,10 +8,8 @@
     "npm": ">=3.10.0"
   },
   "scripts": {
-    "add-font": "./scripts/add-font.sh",
     "build": "yarn build:docs",
     "build:docs": "doctoc --title '## Contents' README.md",
-    "check-font": "./scripts/check-font.sh",
     "ci": "node scripts/ci.js",
     "cd": "node scripts/cd.js",
     "deploy": "./scripts/deploy.sh",
