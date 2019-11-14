@@ -1,12 +1,11 @@
 # Badges
 
-More advanced badges for your projects using Travis or Sauce Labs.
+Advanced badges for your projects using Travis or Sauce Labs.
 
-[See it in action over at the `script-atomic-onload` project.](https://github.com/exogen/script-atomic-onload)
+Read more about about the service and how we built it at ["Living On The Edge: Lazy Static Sites With Modern CDNs And Lambda"](https://formidable.com/blog/2019/modern-cdns-lambda/)!
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 ## Contents
 
 - [Badges](#badges)
@@ -17,65 +16,71 @@ More advanced badges for your projects using Travis or Sauce Labs.
     - [`/size/:source/:path`](#sizesourcepath)
     - [`/travis/:user/:repo`](#travisuserrepo)
     - [`/travis/:user/:repo/sauce/:sauceUser`](#travisuserreposaucesauceuser)
-- [Deployment](#deployment)
-  - [Heroku](#heroku)
-  - [Anywhere else](#anywhere-else)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Badges
 
+Let's start off by looking at some various badges in action!
+
 **File size for any file on GitHub or npm**
 
-[![Builder package.json size](https://badges.herokuapp.com/size/github/FormidableLabs/builder/master/package.json)](https://github.com/FormidableLabs/builder)
+- [`react-fast-compare`](https://github.com/FormidableLabs/react-fast-compare) library size from GitHub.
 
-[![Victory size](https://badges.herokuapp.com/size/npm/victory/dist/victory.min.js?gzip=true)](https://www.npmjs.com/package/victory)
+  [![react-fast-compare size](https://badges.formidable.com/size/github/FormidableLabs/react-fast-compare/master/index.js)](https://badges.formidable.com/size/github/FormidableLabs/react-fast-compare/master/index.js)
+
+- [`victory`](https://www.npmjs.com/package/victory) size (gz) form npm.
+
+  [![Victory size](https://badges.formidable.com/size/npm/victory/dist/victory.min.js?gzip=true)](https://badges.formidable.com/size/npm/victory/dist/victory.min.js?gzip=true)
+
+<!--
+
+TODO: FIND EXAMPLES THAT ACTUALLY WORK.
 
 **Slice your Travis build matrix by environment**
 
-![TEST_LOADER=jquery](https://badges.herokuapp.com/travis/FormidableLabs/script-atomic-onload?branch=master&env=TEST_LOADER=little-loader&label=TEST_LOADER=little-loader)
+![TEST_LOADER=jquery](https://badges.formidable.com/travis/FormidableLabs/script-atomic-onload?branch=master&env=TEST_LOADER=little-loader&label=TEST_LOADER=little-loader)
 
-![TEST_LOADER=little-loader](https://badges.herokuapp.com/travis/FormidableLabs/script-atomic-onload?branch=master&env=TEST_LOADER=jquery&label=TEST_LOADER=jquery)
+![TEST_LOADER=little-loader](https://badges.formidable.com/travis/FormidableLabs/script-atomic-onload?branch=master&env=TEST_LOADER=jquery&label=TEST_LOADER=jquery)
+-->
 
 **Browser support matrix from Sauce Labs**
 
-[![Browser Status](https://badges.herokuapp.com/sauce/wml-little-loader)](https://saucelabs.com/u/wml-little-loader)
+- [`inferno`](https://github.com/infernojs/inferno) Sauce Labs CI matrix.
 
-Beautiful _and_ customizable!
+  [![inferno sauce labs matrix](https://badges.formidable.com/travis/infernojs/inferno/sauce/Havunen?name=InfernoJS)](https://badges.formidable.com/travis/infernojs/inferno/sauce/Havunen?name=InfernoJS)
+
+**Beautiful _and_ customizable!**
 
 - `?labels=none`
 
-  [![Browser Status](https://badges.herokuapp.com/sauce/wml-little-loader?labels=none)](https://saucelabs.com/u/wml-little-loader)
+  [![inferno status](https://badges.formidable.com/sauce/Havunen?labels=none)](https://badges.formidable.com/sauce/Havunen?labels=none)
 
 - `?logos=none`
 
-  [![Browser Status](https://badges.herokuapp.com/sauce/wml-little-loader?logos=none)](https://saucelabs.com/u/wml-little-loader)
+  [![inferno status](https://badges.formidable.com/sauce/Havunen?logos=none)](https://badges.formidable.com/sauce/Havunen?logos=none)
 
 - `?logos=none&labels=longName`
 
-  [![Browser Status](https://badges.herokuapp.com/sauce/wml-little-loader?logos=none&labels=longName)](https://saucelabs.com/u/wml-little-loader)
+  [![inferno status](https://badges.formidable.com/sauce/Havunen?logos=none&labels=longName)](https://badges.formidable.com/sauce/Havunen?logos=none&labels=longName)
 
-Using something other than Sauce Labs? Just construct a URL with results from
-your browser tests.
+Using something other than Sauce Labs? Just construct a URL that manually codes the results from your browser tests:
 
 - `browsers?firefox=20,26&iexplore=!8,-9,10`
 
-  ![Browser Status](https://badges.herokuapp.com/browsers?firefox=20,26&iexplore=!8,-9,10)
+  ![Browser Status](https://badges.formidable.com/browsers?firefox=20,26&iexplore=!8,-9,10)
 
 ## Web Service
 
-Deployed at: `https://badges.formidable.com/`
+The live service is deployed at `https://badges.formidable.com/`
 
-You may also run your own instance using this package. See the **Deployment** section.
+You may also run your own instance using this package. See the **Deployment** section of the [DEVELOPMENT.md](./DEVELOPMENT.md) document.
 
 ### Endpoints
 
 #### `/browsers`
 
-Render browser matrix badge based on support specified in the query
-parameters, for cases where your testing is done with a service other than
-Sauce Labs (otherwise use the `/sauce` endpoint), or you don’t have CI and
-just want to show your intended support.
+Render browser matrix badge based on support specified in the query parameters, for cases where your testing is done with a service other than Sauce Labs (otherwise use the `/sauce` endpoint), or you don’t have CI and just want to show your intended support.
 
 **Query parameters**
 
@@ -296,38 +301,3 @@ the server’s `TRAVIS_ENDPOINT` environment variable. You can force the public
   `style`
 
   Same as the `/sauce/:user` endpoint above.
-
-## Infra
-
-The infrastructure for this project is automated through CI/CD. Pull requests receive comments when they pass CI that give links to both a PR preview environment and to CodePipeline for manually approving production deploys.
-
-The project uses [GitHub Flow](https://guides.github.com/introduction/flow/). After testing an artifact in a PR environment, we deploy that same artifact to production _from_ the branch rather than from merge to `master`. It's important to be aware that an artifact built from `master` post-merge may not be exactly the same as the artifact deployed from the branch.
-
-We use "support tiers" for managing resources shared across PR environments and for emulating multi-account isolation of prod and nonprod via IAM in a single account. These "tiers" are the only manual setup required to launch this project. In the future, we may support, and migrate to, multiple AWS accounts.
-
-### Initial setup
-
-- Set up your AWS credentials. We recommend [aws-vault](https://github.com/99designs/aws-vault).
-- Ask @tptee or @ryan-roemer for Fastly, Sauce, and Github credentials.
-- Create the nonprod tier with the below command:
-
-```bash
-FASTLY_API_TOKEN=redacted \
-SAUCE_ACCESS_KEY=redacted \
-GITHUB_TOKEN=redacted \
-SERVICE_NAME=badges \
-TIER=nonprod \
-terragrunt apply --terragrunt-working-dir terraform/admin
-```
-
-- Create the prod tier by repeating the previous command with `TIER=prod`.
-- Open a PR and watch the magic happen!
-
-### Deploying from a pull request (Formidables only)
-
-- Log in to the Formidable AWS account.
-- Open a pull request and wait for the CI check to complete.
-- When CI completes, it posts a comment with links to the PR environment and the deployment pipeline. Verify your changes in the PR environment, then click the link to the pipeline page.
-- On the pipeline page, you'll see an approval step for deploying to production. Click "Review" and then "Approve" in the modal that pops up.
-- After the pipeline deploys to production, it posts a link to production in the PR. Verify your changes in prod.
-- Merge the pull request!
