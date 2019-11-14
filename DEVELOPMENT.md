@@ -23,13 +23,23 @@ Then start the server:
 $ yarn start
 ```
 
-And try out some sample URLs:
+And try out some sample URLs that don't need additional config:
 
 - http://127.0.0.1:3000/size/github/FormidableLabs/react-fast-compare/master/index.js
-- http://127.0.0.1:3000/travis/infernojs/inferno/sauce/Havunen?name=InfernoJS
 - http://127.0.0.1:3000/size/npm/victory/dist/victory.min.js?gzip=true
-- http://127.0.0.1:3000/sauce/Havunen?labels=none
 - http://127.0.0.1:3000/browsers?firefox=20,26&iexplore=!8,-9,10
+
+Some of our API calls utilize secrets stored in AWS as part of the deployment process. You can still develop against these by using your appropriate AWS credentials along with the same start task:
+
+```sh
+$ TODO_INSERT_AWS_VAULT_THING \
+  yarn start
+```
+
+Then try out things like:
+
+- http://127.0.0.1:3000/travis/infernojs/inferno/sauce/Havunen?name=InfernoJS
+- http://127.0.0.1:3000/sauce/Havunen?labels=none
 
 ### Infrastructure / Production
 

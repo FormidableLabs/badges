@@ -4,15 +4,14 @@
   "description": "More advanced badges for your projects using Travis or Sauce Labs.",
   "main": "src/index.js",
   "engines": {
-    "node": ">=6.5.0",
-    "npm": ">=3.10.0"
+    "node": ">=8"
   },
   "scripts": {
     "build": "yarn build:docs",
     "build:docs": "doctoc --title '## Contents' README.md",
     "ci": "node scripts/ci.js",
     "cd": "node scripts/cd.js",
-    "check": "yarn lint && echo TODO_IMPLEMENT_CHECKS && exit 1",
+    "check": "yarn lint",
     "lint": "eslint .",
     "preversion": "yarn build",
     "start": "nodemon src/index.js",
