@@ -43,36 +43,40 @@ const app = express();
 app.set('etag', true);
 app.use(compression());
 
-function handleBrowsersBadge(req, res, browsersList) {
+// Complete `req` for a browsers badge.
+const completeBrowsersBadge = async ({ req, res, getBrowsers }) => {
   const query = { style: req.query.style };
+  const options = {
+    logos: req.query.logos,
+    labels: req.query.labels,
+    exclude: req.query.exclude,
+    sortBy: req.query.sortBy,
+    versionDivider: req.query.versionDivider,
+    ...query
+  };
 
-  return (
-    Promise.resolve(browsersList)
-      .then(browsers => {
-        if (browsers.length) {
-          const options = {
-            logos: req.query.logos,
-            labels: req.query.labels,
-            exclude: req.query.exclude,
-            sortBy: req.query.sortBy,
-            versionDivider: req.query.versionDivider,
-            ...query
-          };
-          return getBrowsersBadge({ browsers, options });
-        }
-        return getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
-      })
-      .catch(err => {
-        console.error(`Error: ${err}`);
-        return getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
-      })
-      // eslint-disable-next-line promise/always-return
-      .then(body => {
-        res.write(body);
-        res.end();
-      })
-  );
-}
+  let body;
+  let browsers;
+  try {
+    browsers = await Promise.resolve(getBrowsers);
+  } catch (err) {
+    console.error(`Error: ${err}`);
+    body = await getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
+  }
+
+  console.log('TODO HERE', { browsers, body });
+  // TODO HERE: http://127.0.0.1:3000/browsers?firefox=20,26&iexplore=!8,-9,10 is WRONG
+  if (!body) {
+    if ((browsers || {}).length) {
+      body = await getBrowsersBadge({ browsers, options });
+    } else {
+      body = await getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
+    }
+  }
+
+  res.write(body);
+  res.end();
+};
 
 /**
  * Helper for sending an SVG response given a promise of SauceLabs jobs
@@ -83,11 +87,11 @@ function handleBrowsersBadge(req, res, browsersList) {
  */
 // eslint-disable-next-line max-params
 function handleSauceBadge(req, res, client, source, sauceJobs) {
-  let browsers;
+  let getBrowsers;
   if (source === 'svg') {
-    browsers = client.getLatestSVGBrowsers();
+    getBrowsers = client.getLatestSVGBrowsers();
   } else {
-    browsers = Promise.resolve(sauceJobs).then(jobs => {
+    getBrowsers = Promise.resolve(sauceJobs).then(jobs => {
       const filters = {
         name: req.query.name,
         tag: req.query.tag
@@ -96,8 +100,8 @@ function handleSauceBadge(req, res, client, source, sauceJobs) {
       return client.aggregateBrowsers(jobs);
     });
   }
-  browsers = browsers.then(getGroupedBrowsers);
-  return handleBrowsersBadge(req, res, browsers);
+  getBrowsers = getBrowsers.then(getGroupedBrowsers);
+  return completeBrowsersBadge({ req, res, getBrowsers });
 }
 
 const startResponse = res => {
@@ -273,7 +277,7 @@ app.get('/size/:source/*', (req, res) => {
 app.get('/browsers', (req, res) => {
   console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
-  let browsers = {};
+  const browsers = {};
   _.forEach(BROWSERS, (value, browser) => {
     const versionNumbers = (req.query[browser] || '').split(',');
     // eslint-disable-next-line no-shadow
@@ -301,10 +305,10 @@ app.get('/browsers', (req, res) => {
       return browsers;
     }, browsers);
   });
-  browsers = getGroupedBrowsers(browsers);
 
   startResponse(res);
-  return handleBrowsersBadge(req, res, browsers);
+  const getBrowsers = getGroupedBrowsers(browsers);
+  return completeBrowsersBadge({ req, res, getBrowsers });
 });
 
 // LAMBDA: Export handler for lambda use.
