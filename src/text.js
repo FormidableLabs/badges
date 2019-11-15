@@ -19,7 +19,6 @@ if (require.main === module) {
     'Microsoft Internet Explorer',
     'Safari'
   ];
-  TEST_STRINGS.forEach(str => {
-    console.log(`${str} [${measureTextWidth(str)}]`);
-  });
+  // eslint-disable-next-line no-console
+  TEST_STRINGS.forEach(str => console.log(`${str} [${measureTextWidth(str)}]`));
 }

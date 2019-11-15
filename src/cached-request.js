@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+const log = require('debug')(`badges:${path.basename(__filename)}`);
 const request = require('request');
 const gzipSize = require('gzip-size');
 const { prettyPrint } = require('./util');
@@ -39,27 +41,23 @@ function cachedRequest(url, options) {
       } else if (size) {
         const isGzipResponse = response.headers['content-encoding'] === 'gzip';
         if (gzip === isGzipResponse && response.headers['content-length']) {
-          console.log('Size request: returning Content-Length.');
+          log('Size request: returning Content-Length.');
           resolve(parseInt(response.headers['content-length'], 10));
         } else if (method === 'HEAD') {
-          console.log(
+          log(
             'Size request made with HEAD, but no Content-Length: returning null.'
           );
           resolve(null);
         } else if (gzip) {
           if (isGzipResponse) {
-            console.log(
-              'Size request received gzip: returning raw response size.'
-            );
+            log('Size request received gzip: returning raw response size.');
             resolve(responseDataSize);
           } else {
-            console.log(
-              'Size request received uncompressed data: running gzip.'
-            );
+            log('Size request received uncompressed data: running gzip.');
             resolve(gzipSize(body));
           }
         } else {
-          console.log('Size request: returning body length.');
+          log('Size request: returning body length.');
           resolve(body.length);
         }
       } else if (resolveHeaders) {

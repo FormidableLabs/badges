@@ -20,7 +20,7 @@ $ yarn
 Then start the server:
 
 ```sh
-$ yarn start
+$ DEBUG="badges:*" yarn start
 ```
 
 And try out some sample URLs that don't need additional config:

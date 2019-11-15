@@ -14,6 +14,6 @@ module.exports = {
     'func-style': 'off',
     'no-magic-numbers': 'off',
     'valid-jsdoc': 'off',
-    'no-console': 'off'
+    'no-console': ['error', { allow: ['warn', 'error'] }]
   }
 };

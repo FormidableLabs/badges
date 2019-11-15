@@ -28,6 +28,7 @@
     "aws-sdk": "^2.544.0",
     "compression": "^1.7.4",
     "config": "^3.2.3",
+    "debug": "^4.1.1",
     "express": "^4.17.1",
     "gzip-size": "^4.0.0",
     "humanize-duration": "^3.21.0",

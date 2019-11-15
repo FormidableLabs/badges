@@ -3,6 +3,8 @@
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.SERVER_HOST || '0.0.0.0';
 
+const { basename } = require('path');
+const log = require('debug')(`badges:${basename(__filename)}`);
 const _ = require('lodash');
 const config = require('config');
 const express = require('express');
@@ -113,12 +115,10 @@ app.get('/', (req, res) => {
   res.redirect(homePage);
 });
 
-// eslint-disable-next-line max-statements,complexity
 app.get(
   '/sauce/:user',
+  // eslint-disable-next-line max-statements,complexity
   asyncMiddleware(async (req, res) => {
-    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
-
     const user = req.params.user;
     const build = req.query.build; // If undefined, will try to get the latest.
 
@@ -170,9 +170,8 @@ app.get('/travis.org/*', (req, res, next) => {
 
 app.get(
   '/travis/:user/:repo',
+  // eslint-disable-next-line max-statements
   asyncMiddleware(async (req, res) => {
-    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
-
     const user = req.params.user;
     const repo = req.params.repo;
     const endpoint = res.locals.travisEndpoint || undefined;
@@ -208,8 +207,6 @@ app.get(
 app.get(
   '/travis/:user/:repo/sauce/:sauceUser?',
   asyncMiddleware(async (req, res) => {
-    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
-
     const { user, repo } = req.params;
     const endpoint = res.locals.travisEndpoint || undefined;
     const sauceUser = req.params.sauceUser || user;
@@ -235,8 +232,6 @@ app.get(
 app.get(
   '/size/:source/*',
   asyncMiddleware(async (req, res) => {
-    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
-
     const source = req.params.source;
     const path = req.params[0];
     const color = req.query.color || 'brightgreen';
@@ -267,8 +262,6 @@ app.get(
 app.get(
   '/browsers',
   asyncMiddleware(async (req, res) => {
-    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
-
     const browsers = {};
     _.forEach(BROWSERS, (value, browser) => {
       const versionNumbers = (req.query[browser] || '').split(',');
@@ -327,8 +320,7 @@ if (require.main === module) {
     () => {
       const { address, port } = server.address();
 
-      // eslint-disable-next-line no-console
-      console.log(`Server started at http://${address}:${port}`);
+      log(`Server started at http://${address}:${port}`);
     }
   );
 }
