@@ -33,6 +33,7 @@ const {
   staleWhileRevalidate,
   staleIfError
 } = config.get('caching');
+const { homePage } = config.get('service');
 
 const cacheHeader =
   cachingEnabled &&
@@ -44,31 +45,33 @@ app.use(compression());
 
 function handleBrowsersBadge(req, res, browsersList) {
   const query = { style: req.query.style };
-  // eslint-disable-next-line promise/catch-or-return
-  Promise.resolve(browsersList)
-    .then(browsers => {
-      if (browsers.length) {
-        const options = {
-          logos: req.query.logos,
-          labels: req.query.labels,
-          exclude: req.query.exclude,
-          sortBy: req.query.sortBy,
-          versionDivider: req.query.versionDivider,
-          ...query
-        };
-        return getBrowsersBadge({ browsers, options });
-      }
-      return getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
-    })
-    .catch(err => {
-      console.error(`Error: ${err}`);
-      return getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
-    })
-    // eslint-disable-next-line promise/always-return
-    .then(body => {
-      res.write(body);
-      res.end();
-    });
+
+  return (
+    Promise.resolve(browsersList)
+      .then(browsers => {
+        if (browsers.length) {
+          const options = {
+            logos: req.query.logos,
+            labels: req.query.labels,
+            exclude: req.query.exclude,
+            sortBy: req.query.sortBy,
+            versionDivider: req.query.versionDivider,
+            ...query
+          };
+          return getBrowsersBadge({ browsers, options });
+        }
+        return getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
+      })
+      .catch(err => {
+        console.error(`Error: ${err}`);
+        return getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
+      })
+      // eslint-disable-next-line promise/always-return
+      .then(body => {
+        res.write(body);
+        res.end();
+      })
+  );
 }
 
 /**
@@ -97,8 +100,17 @@ function handleSauceBadge(req, res, client, source, sauceJobs) {
   return handleBrowsersBadge(req, res, browsers);
 }
 
+const startResponse = res => {
+  res.status(200);
+  res.set('Content-Type', 'image/svg+xml');
+  if (cachingEnabled) {
+    res.set('Cache-Control', cacheHeader);
+  }
+  res.flushHeaders();
+};
+
 app.get('/', (req, res) => {
-  res.redirect('https://github.com/FormidableLabs/badges');
+  res.redirect(homePage);
 });
 
 // eslint-disable-next-line max-statements,complexity
@@ -160,49 +172,44 @@ app.get('/travis.org/*', (req, res, next) => {
   next();
 });
 
-app.get('/travis/:user/:repo', (req, res) => {
-  res.status(200);
-  res.set('Content-Type', 'image/svg+xml');
-  if (cachingEnabled) {
-    res.set('Cache-Control', cacheHeader);
-  }
-  res.flushHeaders();
+app.get(
+  '/travis/:user/:repo',
+  asyncMiddleware(async (req, res) => {
+    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
-  console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
+    const user = req.params.user;
+    const repo = req.params.repo;
+    const endpoint = res.locals.travisEndpoint || undefined;
+    const branch = req.query.branch || 'master';
+    const label = req.query.label || req.params.repo;
+    const travis = new TravisClient(user, repo, endpoint);
+    const query = { style: req.query.style };
 
-  const user = req.params.user;
-  const repo = req.params.repo;
-  const endpoint = res.locals.travisEndpoint || undefined;
-  const branch = req.query.branch || 'master';
-  const label = req.query.label || req.params.repo;
-  const travis = new TravisClient(user, repo, endpoint);
-  const query = { style: req.query.style };
-  // eslint-disable-next-line promise/catch-or-return
-  travis
-    .getLatestBranchBuild(branch)
-    .then(build => {
-      const filters = {
-        env: req.query.env
-      };
-      const jobs = travis.filterJobs(build.jobs, filters);
-      const status = travis.aggregateStatus(jobs);
-      const color =
-        {
-          passed: 'brightgreen',
-          failed: 'red'
-        }[status] || 'lightgrey';
-      return getShieldsBadge(label, status, color, query);
-    })
-    .catch(err => {
+    const build = await travis.getLatestBranchBuild(branch);
+    const filters = {
+      env: req.query.env
+    };
+    const jobs = travis.filterJobs(build.jobs, filters);
+    const status = travis.aggregateStatus(jobs);
+    const color =
+      {
+        passed: 'brightgreen',
+        failed: 'red'
+      }[status] || 'lightgrey';
+
+    let body;
+    try {
+      body = getShieldsBadge(label, status, color, query);
+    } catch (err) {
       console.error(`Error: ${err}`);
-      return getShieldsBadge(label, 'error', 'lightgrey', query);
-    })
-    // eslint-disable-next-line promise/always-return
-    .then(body => {
-      res.write(body);
-      res.end();
-    });
-});
+      body = getShieldsBadge(label, 'error', 'lightgrey', query);
+    }
+
+    startResponse(res);
+    res.write(body);
+    res.end();
+  })
+);
 
 app.get(
   '/travis/:user/:repo/sauce/:sauceUser?',
@@ -222,26 +229,13 @@ app.get(
       return sauce.getTravisBuildJobs(build);
     });
 
-    // Start response.
-    res.status(200);
-    res.set('Content-Type', 'image/svg+xml');
-    if (cachingEnabled) {
-      res.set('Cache-Control', cacheHeader);
-    }
-    res.flushHeaders();
+    startResponse(res);
     return handleSauceBadge(req, res, sauce, 'api', jobs);
   })
 );
 
 // eslint-disable-next-line max-statements
 app.get('/size/:source/*', (req, res) => {
-  res.status(200);
-  res.set('Content-Type', 'image/svg+xml');
-  if (cachingEnabled) {
-    res.set('Cache-Control', cacheHeader);
-  }
-  res.flushHeaders();
-
   console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
   const source = req.params.source;
@@ -270,19 +264,13 @@ app.get('/size/:source/*', (req, res) => {
     })
     // eslint-disable-next-line promise/always-return
     .then(body => {
+      startResponse(res);
       res.write(body);
       res.end();
     });
 });
 
 app.get('/browsers', (req, res) => {
-  res.status(200);
-  res.set('Content-Type', 'image/svg+xml');
-  if (cachingEnabled) {
-    res.set('Cache-Control', cacheHeader);
-  }
-  res.flushHeaders();
-
   console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
   let browsers = {};
@@ -314,7 +302,9 @@ app.get('/browsers', (req, res) => {
     }, browsers);
   });
   browsers = getGroupedBrowsers(browsers);
-  handleBrowsersBadge(req, res, browsers);
+
+  startResponse(res);
+  return handleBrowsersBadge(req, res, browsers);
 });
 
 // LAMBDA: Export handler for lambda use.
