@@ -10,6 +10,7 @@ const config = require('config');
 const express = require('express');
 const compression = require('compression');
 
+const { asyncMiddleware } = require('./middleware');
 const {
   TravisClient,
   TRAVIS_COM_ENDPOINT,
@@ -101,46 +102,49 @@ app.get('/', (req, res) => {
 });
 
 // eslint-disable-next-line max-statements,complexity
-app.get('/sauce/:user', (req, res) => {
-  res.status(200);
-  res.set('Content-Type', 'image/svg+xml');
-  if (cachingEnabled) {
-    res.set('Cache-Control', cacheHeader);
-  }
-  res.flushHeaders();
+app.get(
+  '/sauce/:user',
+  asyncMiddleware(async (req, res) => {
+    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
-  console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
+    const user = req.params.user;
+    let source = req.query.source || 'svg';
+    const build = req.query.build; // If undefined, will try to get the latest.
+    const query = {};
+    if (req.query.from) {
+      query.from = parseInt(req.query.from, 10) || void 0;
+    }
+    if (req.query.to) {
+      query.to = parseInt(req.query.to, 10) || void 0;
+    }
+    if (req.query.skip) {
+      query.skip = parseInt(req.query.skip, 10) || void 0;
+    }
+    if (
+      build ||
+      req.query.name ||
+      req.query.tag ||
+      req.query.from ||
+      req.query.to ||
+      req.query.skip
+    ) {
+      source = 'api';
+    }
 
-  const user = req.params.user;
-  let source = req.query.source || 'svg';
-  const build = req.query.build; // If undefined, will try to get the latest.
-  const query = {};
-  if (req.query.from) {
-    query.from = parseInt(req.query.from, 10) || void 0;
-  }
-  if (req.query.to) {
-    query.to = parseInt(req.query.to, 10) || void 0;
-  }
-  if (req.query.skip) {
-    query.skip = parseInt(req.query.skip, 10) || void 0;
-  }
-  if (
-    build ||
-    req.query.name ||
-    req.query.tag ||
-    req.query.from ||
-    req.query.to ||
-    req.query.skip
-  ) {
-    source = 'api';
-  }
-  // eslint-disable-next-line promise/catch-or-return
-  getSecret('sauce-access-key').then(accessKey => {
+    const accessKey = await getSecret('sauce-access-key');
     const sauce = new SauceClient(user, accessKey);
     const jobs = source === 'api' ? sauce.getBuildJobs(build, query) : [];
+
+    // Start response.
+    res.status(200);
+    res.set('Content-Type', 'image/svg+xml');
+    if (cachingEnabled) {
+      res.set('Cache-Control', cacheHeader);
+    }
+    res.flushHeaders();
     return handleSauceBadge(req, res, sauce, source, jobs);
-  });
-});
+  })
+);
 
 // Rewrite `/travis.com` and `/travis.org` URLs to `/travis` while setting
 // `res.locals.travisEndpoint`.
@@ -200,32 +204,34 @@ app.get('/travis/:user/:repo', (req, res) => {
     });
 });
 
-app.get('/travis/:user/:repo/sauce/:sauceUser?', (req, res) => {
-  res.status(200);
-  res.set('Content-Type', 'image/svg+xml');
-  if (cachingEnabled) {
-    res.set('Cache-Control', cacheHeader);
-  }
-  res.flushHeaders();
+app.get(
+  '/travis/:user/:repo/sauce/:sauceUser?',
+  asyncMiddleware(async (req, res) => {
+    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
-  console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
+    const user = req.params.user;
+    const repo = req.params.repo;
+    const endpoint = res.locals.travisEndpoint || undefined;
+    const sauceUser = req.params.sauceUser || user;
+    const branch = req.query.branch || 'master';
+    const travis = new TravisClient(user, repo, endpoint);
 
-  const user = req.params.user;
-  const repo = req.params.repo;
-  const endpoint = res.locals.travisEndpoint || undefined;
-  const sauceUser = req.params.sauceUser || user;
-  const branch = req.query.branch || 'master';
-  const travis = new TravisClient(user, repo, endpoint);
-  // eslint-disable-next-line promise/catch-or-return
-  getSecret('sauce-access-key').then(accessKey => {
+    const accessKey = await getSecret('sauce-access-key');
     const sauce = new SauceClient(sauceUser, accessKey);
-    // eslint-disable-next-line promise/no-nesting
-    const jobs = travis.getLatestBranchBuild(branch).then(build => {
+    const jobs = await travis.getLatestBranchBuild(branch).then(build => {
       return sauce.getTravisBuildJobs(build);
     });
+
+    // Start response.
+    res.status(200);
+    res.set('Content-Type', 'image/svg+xml');
+    if (cachingEnabled) {
+      res.set('Cache-Control', cacheHeader);
+    }
+    res.flushHeaders();
     return handleSauceBadge(req, res, sauce, 'api', jobs);
-  });
-});
+  })
+);
 
 // eslint-disable-next-line max-statements
 app.get('/size/:source/*', (req, res) => {
