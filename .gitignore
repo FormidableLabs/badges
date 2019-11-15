@@ -1,6 +1,3 @@
-# Custom
-Verdana.ttf
-
 # Generated gitignore.io starts here
 
 # Created by https://www.gitignore.io/api/osx,node,linux,windows,intellij,terraform,terragrunt,visualstudiocode
@@ -187,7 +184,7 @@ typings/
 # nuxt.js build output
 .nuxt
 
-# react / gatsby 
+# react / gatsby
 public/
 
 # vuepress build output

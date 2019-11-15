@@ -2,21 +2,20 @@
   "name": "badges",
   "version": "7.5.0",
   "description": "More advanced badges for your projects using Travis or Sauce Labs.",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "engines": {
-    "node": ">=6.5.0",
-    "npm": ">=3.10.0"
+    "node": ">=8"
   },
   "scripts": {
     "build": "yarn build:docs",
     "build:docs": "doctoc --title '## Contents' README.md",
     "ci": "node scripts/ci.js",
     "cd": "node scripts/cd.js",
-    "deploy": "./scripts/deploy.sh",
+    "check": "yarn lint",
     "lint": "eslint .",
     "preversion": "yarn build",
-    "start": "node lib/index.js",
-    "start:dev": "nodemon src/index.js | pino-pretty",
+    "start": "nodemon src/index.js",
+    "start:dev": "yarn start | pino-pretty",
     "test": "yarn lint"
   },
   "author": "Brian Beck",
