@@ -28,8 +28,8 @@
     "aws-sdk": "^2.544.0",
     "compression": "^1.7.4",
     "config": "^3.2.3",
+    "debug": "^4.1.1",
     "express": "^4.17.1",
-    "express-interceptor": "^1.1.1",
     "gzip-size": "^4.0.0",
     "humanize-duration": "^3.21.0",
     "lodash": "^4.17.15",
@@ -41,7 +41,6 @@
     "pretty-bytes": "^4.0.2",
     "request": "^2.88.0",
     "serverless-http": "^2.3.0",
-    "svgo": "^0.7.0",
     "xml2js": "^0.4.22"
   },
   "devDependencies": {

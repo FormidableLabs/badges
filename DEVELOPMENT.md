@@ -21,6 +21,8 @@ Then start the server:
 
 ```sh
 $ yarn start
+# OR, full debug + pretty logging
+$ DEBUG="badges:*" yarn start:dev
 ```
 
 And try out some sample URLs that don't need additional config:
@@ -31,19 +33,23 @@ And try out some sample URLs that don't need additional config:
 
 Some of our API calls utilize secrets stored in AWS as part of the deployment process. You can still develop against these by using your appropriate AWS credentials along with the same start task:
 
-`EXAMPLE_FORTHCOMING`: See [#28](https://github.com/FormidableLabs/badges/issues/28)
-
-<!--
 ```sh
-$ TODO_INSERT_AWS_VAULT_THING \
+$ AWS_REGION=<INSERT_REGION> \
+  aws-vault exec <INSERT_AWS_VAULT_PROFILE> -- \
+  yarn start
+
+# Could look something like
+$ AWS_REGION=us-east-1 \
+  aws-vault exec jane.developer -- \
   yarn start
 ```
+
+(You can provide normal AWS environment variables / local config files for credentials as an alternative, but we recommend `aws-vault` due to the enhanced security of credential use and storage.)
 
 Then try out things like:
 
 - http://127.0.0.1:3000/travis/infernojs/inferno/sauce/Havunen?name=InfernoJS
 - http://127.0.0.1:3000/sauce/Havunen?labels=none
--->
 
 ### Infrastructure / Production
 
