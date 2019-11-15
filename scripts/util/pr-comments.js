@@ -25,14 +25,17 @@ const postPrEnvironmentLink = async ({ name, stage, tier }) => {
 
   const endpoint = `https://${name}-${tier}-${stage}.freetls.fastly.net`;
   const examples = [
-    '/size/github/FormidableLabs/react-fast-compare/master/index.js',
-    '/size/npm/victory/dist/victory.min.js?gzip=true',
-    '/browsers?firefox=20,26&iexplore=!8,-9,10',
-    '/travis/infernojs/inferno/sauce/Havunen?name=InfernoJS',
-    '/sauce/Havunen?labels=none'
+    'size/github/FormidableLabs/react-fast-compare/master/index.js',
+    'size/npm/victory/dist/victory.min.js?gzip=true',
+    'browsers?firefox=20,26&iexplore=!8,-9,10',
+    'travis/infernojs/inferno/sauce/Havunen?name=InfernoJS',
+    'sauce/Havunen?labels=none'
   ]
-    .map(example => `${endpoint}${example}`)
-    .map(url => `- ${url} [![example](${url})](${url})`)
+    .map(example => ({ example, url: `${endpoint}/${example}` }))
+    .map(
+      ({ example, url }) =>
+        `- [\`${example}\`](${url}) [![example](${url})](${url})`
+    )
     .join('\n');
 
   const body = `
