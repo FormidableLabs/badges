@@ -120,8 +120,8 @@ app.get(
     console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
     const user = req.params.user;
-    let source = req.query.source || 'svg';
     const build = req.query.build; // If undefined, will try to get the latest.
+
     const query = {};
     if (req.query.from) {
       query.from = parseInt(req.query.from, 10) || void 0;
@@ -132,6 +132,8 @@ app.get(
     if (req.query.skip) {
       query.skip = parseInt(req.query.skip, 10) || void 0;
     }
+
+    let source = req.query.source || 'svg';
     if (
       build ||
       req.query.name ||
@@ -230,38 +232,37 @@ app.get(
 );
 
 // eslint-disable-next-line max-statements
-app.get('/size/:source/*', (req, res) => {
-  console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
+app.get(
+  '/size/:source/*',
+  asyncMiddleware(async (req, res) => {
+    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
-  const source = req.params.source;
-  const path = req.params[0];
-  const color = req.query.color || 'brightgreen';
-  const options = { gzip: req.query.gzip === 'true' };
-  const query = { style: req.query.style };
-  let url;
-  // Express' path-to-regexp business is too insane to easily do this above.
-  if (path.length > 0) {
-    if (source === 'github') {
-      url = `https://raw.githubusercontent.com/${path}`;
-    } else if (source === 'npm') {
-      url = `https://unpkg.com/${path}`;
+    const source = req.params.source;
+    const path = req.params[0];
+    const color = req.query.color || 'brightgreen';
+    const options = { gzip: req.query.gzip === 'true' };
+    const query = { style: req.query.style };
+    let url;
+    // Express' path-to-regexp business is too insane to easily do this above.
+    if (path.length > 0) {
+      if (source === 'github') {
+        url = `https://raw.githubusercontent.com/${path}`;
+      } else if (source === 'npm') {
+        url = `https://unpkg.com/${path}`;
+      }
     }
-  }
-  const label = req.query.label || (options.gzip ? 'size (gzip)' : 'size');
-  // eslint-disable-next-line promise/catch-or-return
-  getFileSize(url, options)
-    .then(size => {
-      return getShieldsBadge(label, size, color, query);
-    })
-    .catch(err => {
-      console.error(`Error: ${err}`);
-      return getShieldsBadge(label, 'error', 'lightgrey', query);
-    })
-    // eslint-disable-next-line promise/always-return
-    .then(body => {
-      sendResponse({ res, body });
-    });
-});
+    const label = req.query.label || (options.gzip ? 'size (gzip)' : 'size');
+
+    const body = await getFileSize(url, options)
+      .then(size => getShieldsBadge(label, size, color, query))
+      .catch(err => {
+        console.error(`Error: ${err}`);
+        return getShieldsBadge(label, 'error', 'lightgrey', query);
+      });
+
+    sendResponse({ res, body });
+  })
+);
 
 app.get(
   '/browsers',
