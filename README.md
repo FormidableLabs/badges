@@ -29,7 +29,7 @@ Let's start off by looking at some various badges in action!
 
   [![react-fast-compare size](https://badges.formidable.com/size/github/FormidableLabs/react-fast-compare/master/index.js)](https://badges.formidable.com/size/github/FormidableLabs/react-fast-compare/master/index.js)
 
-- [`victory`](https://www.npmjs.com/package/victory) size (gz) form npm.
+- [`victory`](https://www.npmjs.com/package/victory) size (gz) from npm.
 
   [![Victory size](https://badges.formidable.com/size/npm/victory/dist/victory.min.js?gzip=true)](https://badges.formidable.com/size/npm/victory/dist/victory.min.js?gzip=true)
 
