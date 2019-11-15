@@ -1,5 +1,3 @@
-/* eslint-disable global-require */
-
 'use strict';
 
 const PORT = process.env.PORT || 3000;
@@ -39,11 +37,10 @@ const cacheHeader =
   cachingEnabled &&
   `public, must-revalidate, max-age=${browserMaxAge}, s-maxage=${cdnMaxAge}, stale-while-revalidate=${staleWhileRevalidate}, stale-if-error=${staleIfError}`;
 
-const app = express();
-app.set('etag', true);
-app.use(compression());
-
-// Complete `req` for a browsers badge.
+// ============================================================================
+// Helpers
+// ============================================================================
+// Complete `res` for a browsers badge.
 const completeBrowsersBadge = async ({ req, res, getBrowsers }) => {
   const query = { style: req.query.style };
   const options = {
@@ -61,17 +58,12 @@ const completeBrowsersBadge = async ({ req, res, getBrowsers }) => {
     browsers = await Promise.resolve(getBrowsers);
   } catch (err) {
     console.error(`Error: ${err}`);
-    body = await getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
   }
 
-  console.log('TODO HERE', { browsers, body });
-  // TODO HERE: http://127.0.0.1:3000/browsers?firefox=20,26&iexplore=!8,-9,10 is WRONG
-  if (!body) {
-    if ((browsers || {}).length) {
-      body = await getBrowsersBadge({ browsers, options });
-    } else {
-      body = await getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
-    }
+  if ((browsers || {}).length) {
+    body = await getBrowsersBadge({ browsers, options });
+  } else {
+    body = await getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
   }
 
   res.write(body);
@@ -113,6 +105,12 @@ const startResponse = res => {
   res.flushHeaders();
 };
 
+// ============================================================================
+// Server
+// ============================================================================
+const app = express();
+app.set('etag', true);
+app.use(compression());
 app.get('/', (req, res) => {
   res.redirect(homePage);
 });
@@ -220,18 +218,16 @@ app.get(
   asyncMiddleware(async (req, res) => {
     console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
-    const user = req.params.user;
-    const repo = req.params.repo;
+    const { user, repo } = req.params;
     const endpoint = res.locals.travisEndpoint || undefined;
     const sauceUser = req.params.sauceUser || user;
     const branch = req.query.branch || 'master';
-    const travis = new TravisClient(user, repo, endpoint);
 
     const accessKey = await getSecret('sauce-access-key');
+    const travis = new TravisClient(user, repo, endpoint);
+    const build = await travis.getLatestBranchBuild(branch);
     const sauce = new SauceClient(sauceUser, accessKey);
-    const jobs = await travis.getLatestBranchBuild(branch).then(build => {
-      return sauce.getTravisBuildJobs(build);
-    });
+    const jobs = await sauce.getTravisBuildJobs(build);
 
     startResponse(res);
     return handleSauceBadge(req, res, sauce, 'api', jobs);
@@ -311,6 +307,9 @@ app.get('/browsers', (req, res) => {
   return completeBrowsersBadge({ req, res, getBrowsers });
 });
 
+// ============================================================================
+// Execution
+// ============================================================================
 // LAMBDA: Export handler for lambda use.
 let handler;
 module.exports.handler = (event, context, callback) => {
