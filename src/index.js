@@ -40,8 +40,8 @@ const cacheHeader =
 // ============================================================================
 // Helpers
 // ============================================================================
-// Complete `res` for a browsers badge.
-const completeBrowsersBadge = async ({ req, res, getBrowsers }) => {
+// Complete response body for a browsers badge.
+const getBrowsersBadgeBody = async ({ req, getBrowsers }) => {
   const query = { style: req.query.style };
   const options = {
     logos: req.query.logos,
@@ -52,22 +52,17 @@ const completeBrowsersBadge = async ({ req, res, getBrowsers }) => {
     ...query
   };
 
-  let body;
   let browsers;
   try {
     browsers = await Promise.resolve(getBrowsers);
+    if (browsers.length) {
+      return getBrowsersBadge({ browsers, options });
+    }
   } catch (err) {
     console.error(`Error: ${err}`);
   }
 
-  if ((browsers || {}).length) {
-    body = await getBrowsersBadge({ browsers, options });
-  } else {
-    body = await getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
-  }
-
-  res.write(body);
-  res.end();
+  return getShieldsBadge('browsers', 'unknown', 'lightgrey', query);
 };
 
 /**
@@ -77,32 +72,35 @@ const completeBrowsersBadge = async ({ req, res, getBrowsers }) => {
  * - /sauce/:user - Get jobs for any build (regardless of CI service).
  * - /travis/:user/:repo/sauce - Get jobs for a Travis build.
  */
-// eslint-disable-next-line max-params
-function handleSauceBadge(req, res, client, source, sauceJobs) {
+const getSauceBadgeBody = ({ req, sauce, source, sauceJobs }) => {
   let getBrowsers;
   if (source === 'svg') {
-    getBrowsers = client.getLatestSVGBrowsers();
+    getBrowsers = sauce.getLatestSVGBrowsers();
   } else {
     getBrowsers = Promise.resolve(sauceJobs).then(jobs => {
       const filters = {
         name: req.query.name,
         tag: req.query.tag
       };
-      jobs = client.filterJobs(jobs, filters);
-      return client.aggregateBrowsers(jobs);
+      jobs = sauce.filterJobs(jobs, filters);
+      return sauce.aggregateBrowsers(jobs);
     });
   }
   getBrowsers = getBrowsers.then(getGroupedBrowsers);
-  return completeBrowsersBadge({ req, res, getBrowsers });
-}
 
-const startResponse = res => {
+  return getBrowsersBadgeBody({ req, getBrowsers });
+};
+
+// Common response wrapper
+const sendResponse = ({ res, body }) => {
   res.status(200);
   res.set('Content-Type', 'image/svg+xml');
   if (cachingEnabled) {
     res.set('Cache-Control', cacheHeader);
   }
   res.flushHeaders();
+  res.write(body);
+  res.end();
 };
 
 // ============================================================================
@@ -147,16 +145,10 @@ app.get(
 
     const accessKey = await getSecret('sauce-access-key');
     const sauce = new SauceClient(user, accessKey);
-    const jobs = source === 'api' ? sauce.getBuildJobs(build, query) : [];
+    const sauceJobs = source === 'api' ? sauce.getBuildJobs(build, query) : [];
+    const body = await getSauceBadgeBody({ req, sauce, source, sauceJobs });
 
-    // Start response.
-    res.status(200);
-    res.set('Content-Type', 'image/svg+xml');
-    if (cachingEnabled) {
-      res.set('Cache-Control', cacheHeader);
-    }
-    res.flushHeaders();
-    return handleSauceBadge(req, res, sauce, source, jobs);
+    sendResponse({ res, body });
   })
 );
 
@@ -207,9 +199,7 @@ app.get(
       body = getShieldsBadge(label, 'error', 'lightgrey', query);
     }
 
-    startResponse(res);
-    res.write(body);
-    res.end();
+    sendResponse({ res, body });
   })
 );
 
@@ -227,10 +217,15 @@ app.get(
     const travis = new TravisClient(user, repo, endpoint);
     const build = await travis.getLatestBranchBuild(branch);
     const sauce = new SauceClient(sauceUser, accessKey);
-    const jobs = await sauce.getTravisBuildJobs(build);
+    const sauceJobs = await sauce.getTravisBuildJobs(build);
+    const body = await getSauceBadgeBody({
+      req,
+      sauce,
+      source: 'api',
+      sauceJobs
+    });
 
-    startResponse(res);
-    return handleSauceBadge(req, res, sauce, 'api', jobs);
+    sendResponse({ res, body });
   })
 );
 
@@ -264,48 +259,50 @@ app.get('/size/:source/*', (req, res) => {
     })
     // eslint-disable-next-line promise/always-return
     .then(body => {
-      startResponse(res);
-      res.write(body);
-      res.end();
+      sendResponse({ res, body });
     });
 });
 
-app.get('/browsers', (req, res) => {
-  console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
+app.get(
+  '/browsers',
+  asyncMiddleware(async (req, res) => {
+    console.log(`Incoming request from referrer: ${req.get('Referrer')}`);
 
-  const browsers = {};
-  _.forEach(BROWSERS, (value, browser) => {
-    const versionNumbers = (req.query[browser] || '').split(',');
-    // eslint-disable-next-line no-shadow
-    versionNumbers.reduce((browsers, version) => {
-      if (!version) {
+    const browsers = {};
+    _.forEach(BROWSERS, (value, browser) => {
+      const versionNumbers = (req.query[browser] || '').split(',');
+      // eslint-disable-next-line no-shadow
+      versionNumbers.reduce((browsers, version) => {
+        if (!version) {
+          return browsers;
+        }
+        let status = {
+          '!': 'error',
+          '-': 'failed',
+          '+': 'passed'
+        }[version.charAt(0)];
+        if (status) {
+          version = version.slice(1);
+        } else {
+          status = 'passed';
+        }
+        const versions = (browsers[browser] = browsers[browser] || {});
+        const browserData = (versions[version] = versions[version] || {
+          browser,
+          version,
+          status: 'unknown'
+        });
+        browserData.status = status;
         return browsers;
-      }
-      let status = {
-        '!': 'error',
-        '-': 'failed',
-        '+': 'passed'
-      }[version.charAt(0)];
-      if (status) {
-        version = version.slice(1);
-      } else {
-        status = 'passed';
-      }
-      const versions = (browsers[browser] = browsers[browser] || {});
-      const browserData = (versions[version] = versions[version] || {
-        browser,
-        version,
-        status: 'unknown'
-      });
-      browserData.status = status;
-      return browsers;
-    }, browsers);
-  });
+      }, browsers);
+    });
 
-  startResponse(res);
-  const getBrowsers = getGroupedBrowsers(browsers);
-  return completeBrowsersBadge({ req, res, getBrowsers });
-});
+    const getBrowsers = getGroupedBrowsers(browsers);
+    const body = await getBrowsersBadgeBody({ req, getBrowsers });
+
+    sendResponse({ res, body });
+  })
+);
 
 // ============================================================================
 // Execution
