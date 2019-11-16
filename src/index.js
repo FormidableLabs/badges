@@ -194,10 +194,10 @@ app.get(
 
     let body;
     try {
-      body = getShieldsBadge(label, status, color, query);
+      body = await getShieldsBadge(label, status, color, query);
     } catch (err) {
       console.error(`Error: ${err}`);
-      body = getShieldsBadge(label, 'error', 'lightgrey', query);
+      body = await getShieldsBadge(label, 'error', 'lightgrey', query);
     }
 
     sendResponse({ res, body });
@@ -212,9 +212,12 @@ app.get(
     const sauceUser = req.params.sauceUser || user;
     const branch = req.query.branch || 'master';
 
-    const accessKey = await getSecret('sauce-access-key');
     const travis = new TravisClient(user, repo, endpoint);
-    const build = await travis.getLatestBranchBuild(branch);
+    const [accessKey, build] = await Promise.all([
+      getSecret('sauce-access-key'),
+      travis.getLatestBranchBuild(branch)
+    ]);
+
     const sauce = new SauceClient(sauceUser, accessKey);
     const sauceJobs = await sauce.getTravisBuildJobs(build);
     const body = await getSauceBadgeBody({
