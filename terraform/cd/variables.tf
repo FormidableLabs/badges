@@ -47,6 +47,8 @@ locals {
   tags = map(
     "Service", var.service_name,
     "Tier", var.tier,
+    "Stage", var.tier,
+    "TierStage": var.stage,
   )
 }
 

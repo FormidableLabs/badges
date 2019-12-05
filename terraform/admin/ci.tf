@@ -96,10 +96,7 @@ resource "aws_codebuild_project" "pr_ci" {
     }
   }
 
-  tags = {
-    Tier    = var.tier
-    Service = var.service_name
-  }
+  tags = local.tags
 }
 
 resource "aws_codebuild_webhook" "pr_ci" {

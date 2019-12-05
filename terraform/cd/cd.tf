@@ -187,9 +187,12 @@ resource "aws_codebuild_project" "cd" {
     }
   }
 
+  # We map tier to stage for normalization against `terraform-aws-serverless`.
   tags = {
-    Tier    = each.value["tier"]
-    Service = var.service_name
+    Service   = var.service_name
+    Tier      = each.value["tier"]
+    Stage     = each.value["tier"]
+    TierStage = var.stage
   }
 }
 

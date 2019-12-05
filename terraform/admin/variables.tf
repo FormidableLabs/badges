@@ -53,9 +53,12 @@ variable "fastly_api_token" {
 locals {
   prefix = "tf-${var.service_name}-${var.tier}"
 
+  # We map tier to stage for normalization against `terraform-aws-serverless`.
+  # No `var.stage` in admin.
   tags = map(
     "Service", var.service_name,
     "Tier", var.tier,
+    "Stage", var.tier,
   )
 
   account_id = data.aws_caller_identity.current.account_id
