@@ -102,8 +102,14 @@ Our infrastructures all coalesce around some common configurations that we pass 
     > ℹ️ **Note**: For the [`terraform-aws-serverless`](https://registry.terraform.io/modules/FormidableLabs/serverless/aws/) module we use to control Serverless Framework application privileges, we map `TIER` to the `stage` input and then use a wildcard to map our use of `TIER-STAGE` for least-privileged IAM construction.
 - `STAGE`: Unused in `terraform/admin`. For `terraform/app` and `terraform/cd`, this is a unit of separate stage to support things like per-pull-request environments like `pr123`.
 
-
 Putting this all together, in `nonprod` environment you will see infrastructures like `badges-nonprod-pr123`. In production, you will see infrastructures like `badges-prod-production` as `production` is hard-coded for `STAGE`.
+
+For our AWS tagging and resource groups, we use a slightly different scheme to comport with how the `terraform-aws-serverless` module tags things:
+
+- `Service`: `SERVICE_NAME`. E.g., `badges`
+- `Tier`: `TIER`. E.g., `nonprod`
+- `Stage`: Also `TIER` as that is what goes into the `terraform-aws-serverless` E.g., `nonprod`
+- `TierStage`: A custom extra field to map to our use of `STAGE`. E.g., `pr123` for a per-PR environment or `production` for production.
 
 ### Installation
 
