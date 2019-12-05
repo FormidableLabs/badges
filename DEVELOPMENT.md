@@ -135,15 +135,24 @@ This section is for the initial setup and modification of a given `TIER` for `te
 > ℹ️ **Note**: If you need to modify infrastructures in `terraform/{app,cd}` just edit the files and open a pull request. All the changes are taken care of automagically in automation!
 
 - Set up your AWS credentials. We recommend [aws-vault](https://github.com/99designs/aws-vault).
-    - (_For Formidables for this project_) Ask `@tptee` or `@ryan-roemer` for AWS, Fastly, Sauce, and Github credentials.
-- Create/update the nonprod tier with the below command:
+- (_For Formidables for this project_) Ask `@tptee` or `@ryan-roemer` for AWS, Fastly, Sauce, and Github credentials. You'll need 1password access for the following:
+    - `FASTLY_API_TOKEN`: IC vault. `Fastly (Formidable)` > `TOKENS` > `badges (FASTLY_API_TOKEN)`. Named `terraform` in Fastly admin console.
+    - `SAUCE_ACCESS_KEY`: IC vault. `Sauce Labs` > `KEYS` > `SAUCE_ACCESS_KEY`.
+    - `GITHUB_TOKEN`: IC vault. `GitHub (badges-ci)` > `TOKENS` > `CI (GITHUB_TOKEN)`. Named `badges-ci` in GitHub web console.
+- Create/update the nonprod tier with the below command (assuming using `aws-vault`, if not remove line):
 
     ```sh
+    # (OPTIONAL) Check your changes first
     $ FASTLY_API_TOKEN=<REDACTED> \
       SAUCE_ACCESS_KEY=<REDACTED> \
       GITHUB_TOKEN=<REDACTED> \
       SERVICE_NAME=badges \
       TIER=nonprod \
+      aws-vault exec <SUPERADMIN> --no-session -- \
+      terragrunt plan --terragrunt-working-dir terraform/admin
+
+    # Go do it!
+    $ ... <ALL THE SAME STUFF FROM ABOVE> ...
       terragrunt apply --terragrunt-working-dir terraform/admin
     ```
 
