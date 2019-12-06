@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width=data.layout.width height="20">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width=`${ data.layout.width }` height="20">
   <defs>
     <if(data.layout.style !== "flat-square")>
       <linearGradient id="smooth" x2="0" y2="100%">
@@ -7,9 +7,11 @@
       </linearGradient>
     </if>
     <if(data.layout.style !== "flat-square")>
-      <mask for(badge in data.layout.badges | status-var=loop) id="mask-${ loop.getIndex() }">
-        <rect width=badge.width height="20" rx="3" fill="#fff"/>
-      </mask>
+      <for|badge, index| of=data.layout.badges>
+        <mask id=`mask-${ index }`>
+          <rect width=`${ badge.width }` height="20" rx="3" fill="#fff"/>
+        </mask>
+      </for>
     </if>
     <!-- Browser icons from Font Awesome by Dave Gandy -->
     <!-- http://fontawesome.io via http://icomoon.io -->
@@ -43,48 +45,52 @@
     </symbol>
   </defs>
   <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
-    <g for(badge in data.layout.badges | status-var=loop) transform="translate(${ badge.translate }, 0)"
-      mask=(data.layout.style === "flat-square" ? null : "url(#mask-${ loop.getIndex() })")>
-      <g transform="translate(${ badge.label.translate }, 0)">
-        <rect width=badge.label.width height="20" fill="#555"
-          shape-rendering=(data.layout.style === "flat-square" ? "crispEdges" : null)/>
-        <if(data.layout.style !== "flat-square")>
-          <rect width=badge.label.width height="20" fill="url(#smooth)"/>
-        </if>
-        <if(badge.label.logo)>
+    <for|badge, badgeIdx, badges| of=data.layout.badges>
+      <g transform=`translate(${ badge.translate }, 0)`
+        mask=(data.layout.style === "flat-square" ? null : `url(#mask-${ badgeIdx })`)>
+        <g transform=`translate(${ badge.label.translate }, 0)`>
+          <rect width=`${ badge.label.width }` height="20" fill="#555"
+            shape-rendering=(data.layout.style === "flat-square" ? "crispEdges" : null)/>
           <if(data.layout.style !== "flat-square")>
-            <use xlink:href=badge.label.logo x="5" y="4" width="14" height="14" style="fill: #010101; fill-opacity: 0.3"/>
+            <rect width=`${ badge.label.width }` height="20" fill="url(#smooth)"/>
           </if>
-          <use xlink:href=badge.label.logo x="5" y="3" width="14" height="14" style="fill: #bbb"/>
-        </if>
-        <if(badge.label.text)>
-          <if(data.layout.style !== "flat-square")>
-            <text x=badge.label.x y="15" fill="#010101" fill-opacity="0.3">${ badge.label.text }</text>
+          <if(badge.label.logo)>
+            <if(data.layout.style !== "flat-square")>
+              <use xlink:href=`${ badge.label.logo }` x="5" y="4" width="14" height="14" style="fill: #010101; fill-opacity: 0.3"/>
+            </if>
+            <use xlink:href=`${ badge.label.logo }` x="5" y="3" width="14" height="14" style="fill: #bbb"/>
           </if>
-          <text x=badge.label.x y="14">${ badge.label.text }</text>
-        </if>
+          <if(badge.label.text)>
+            <if(data.layout.style !== "flat-square")>
+              <text x=`${ badge.label.x }` y="15" fill="#010101" fill-opacity="0.3">${ badge.label.text }</text>
+            </if>
+            <text x=`${ badge.label.x }` y="14">${ badge.label.text }</text>
+          </if>
+        </g>
+        <for|browser, browserIdx, browsers| of=badge.versions>
+          <g transform=`translate(${ browser.translate }, 0)`>
+            <rect width=`${ browser.width }` height="20" fill=`${ browser.fill }`
+              shape-rendering=(data.layout.style === "flat-square" ? "crispEdges" : null)/>
+            <if(browser.divider === "line")>
+              <if(browserIdx > 0)>
+                <line x1="0.5" x2="0.5" y1="0" y2="20"
+                  stroke-width="1" stroke="#fff" stroke-opacity="0.3"/>
+              </if>
+              <if(browserIdx === browsers.length - 1)>
+                <line x1=`${ browser.width-0.5 }` x2=`${ browser.width-0.5 }` y1="0" y2="20"
+                  stroke-width="1" stroke="#010101" stroke-opacity="0.1"/>
+              </if>
+            </if>
+            <if(data.layout.style !== "flat-square")>
+              <rect width=`${ browser.width }` height="20" fill="url(#smooth)"/>
+            </if>
+            <if(data.layout.style !== "flat-square")>
+              <text x=`${ browser.x }` y="15" fill="#010101" fill-opacity="0.3">${ browser.text }</text>
+            </if>
+            <text x=`${ browser.x }` y="14">${ browser.text }</text>
+          </g>
+        </for>
       </g>
-      <g for(browser in badge.versions | status-var=loop) transform="translate(${ browser.translate }, 0)">
-        <rect width=browser.width height="20" fill=browser.fill
-          shape-rendering=(data.layout.style === "flat-square" ? "crispEdges" : null)/>
-        <if(browser.divider === "line")>
-          <if(!loop.isFirst())>
-            <line x1="0.5" x2="0.5" y1="0" y2="20"
-              stroke-width="1" stroke="#fff" stroke-opacity="0.3"/>
-          </if>
-          <if(!loop.isLast())>
-            <line x1=browser.width-0.5 x2=browser.width-0.5 y1="0" y2="20"
-              stroke-width="1" stroke="#010101" stroke-opacity="0.1"/>
-          </if>
-        </if>
-        <if(data.layout.style !== "flat-square")>
-          <rect width=browser.width height="20" fill="url(#smooth)"/>
-        </if>
-        <if(data.layout.style !== "flat-square")>
-          <text x=browser.x y="15" fill="#010101" fill-opacity="0.3">${ browser.text }</text>
-        </if>
-        <text x=browser.x y="14">${ browser.text }</text>
-      </g>
-    </g>
+    </for>
   </g>
 </svg>
