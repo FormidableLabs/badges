@@ -165,17 +165,5 @@ This section is for the initial setup and modification of a given `TIER` for `te
     ```
 
 - Create/update the prod tier by repeating the previous command with `TIER=prod`.
-    - > ℹ️ **Note**: When switching `TIER`s using `terragrunt` commands that shell to `terraform init` remember to always select `no` when prompted to "copy existing state". Terraform really wants to munge together different states and it's almost always a bad idea to copy existing state to a remote backend since we use our remote backends as the source of truth.
-
-        ```sh
-        Do you want to copy existing state to the new backend?
-          Pre-existing state was found while migrating the previous ...
-
-          Do you want to overwrite the state in the new backend with the previous state?
-          Enter "yes" to copy and "no" to start with the existing state in the newly
-          configured "s3" backend.
-
-          Enter a value: no
-        ```
 
 - Open a pull request and watch the magic happen for the rest of the infrastruction and application pieces!
