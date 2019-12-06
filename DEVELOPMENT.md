@@ -7,13 +7,15 @@
 - [Application Development](#application-development)
   - [Installation](#installation)
   - [Local Development](#local-development)
-  - [Deploying from a pull request](#deploying-from-a-pull-request)
 - [Infrastructure / Production](#infrastructure--production)
   - [Overview](#overview)
   - [Infrastructures](#infrastructures)
   - [Concepts](#concepts)
   - [Installation](#installation-1)
   - [Infrastructure Development/Creation](#infrastructure-developmentcreation)
+- [Release](#release)
+  - [Deploying to AWS from a pull request](#deploying-to-aws-from-a-pull-request)
+  - [Versioning the project in git](#versioning-the-project-in-git)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -64,18 +66,6 @@ Then try out things like:
 
 - http://127.0.0.1:3000/travis/infernojs/inferno/sauce/Havunen?name=InfernoJS
 - http://127.0.0.1:3000/sauce/Havunen?labels=none
-
-### Deploying from a pull request
-
-As an application developer, everything you need to take a pull request all the way to production is managed via automation in each pull request!
-
-- Log in to the appropriate AWS account.
-- Open a pull request and wait for the CI check to complete.
-- When CI completes, it posts a comment with links to the PR environment and the deployment pipeline. Verify your changes in the PR environment, then click the link to the pipeline page.
-- On the pipeline page, you'll see an approval step for deploying to production. Click "Review" and then "Approve" in the modal that pops up.
-- After the pipeline deploys to production, it posts a link to production in the PR. Verify your changes in prod.
-- Merge the pull request!
-
 
 ## Infrastructure / Production
 
@@ -167,3 +157,30 @@ This section is for the initial setup and modification of a given `TIER` for `te
 - Create/update the prod tier by repeating the previous command with `TIER=prod`.
 
 - Open a pull request and watch the magic happen for the rest of the infrastruction and application pieces!
+
+## Release
+
+Releasing entails deploying the application AWS artifact all the way to production via a pull request, then adding version tags to git.
+
+### Deploying to AWS from a pull request
+
+As an application developer, everything you need to take a pull request all the way to production is managed via automation in each pull request!
+
+- Log in to the appropriate AWS account.
+- Open a pull request and wait for the CI check to complete.
+- When CI completes, it posts a comment with links to the PR environment and the deployment pipeline. Verify your changes in the PR environment, then click the link to the pipeline page.
+- On the pipeline page, you'll see an approval step for deploying to production. Click "Review" and then "Approve" in the modal that pops up.
+- After the pipeline deploys to production, it posts a link to production in the PR. Verify your changes in prod.
+- Merge the pull request!
+
+### Versioning the project in git
+
+_Only for Formidables / project maintainers_.
+
+We should publish a tagged version to GitHub on every release / update:
+
+1. Update `CHANGELOG.md`, following format for previous versions
+2. Commit as "Changes for version NUMBER"
+3. Run `npm version patch` (or `minor|major|VERSION`) to run tests and lint,
+   build published directories, then update `package.json` + add a git tag.
+4. Run `git push && git push --tags`
