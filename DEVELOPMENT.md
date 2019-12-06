@@ -10,7 +10,7 @@
   - [Deploying from a pull request](#deploying-from-a-pull-request)
 - [Infrastructure / Production](#infrastructure--production)
   - [Overview](#overview)
-  - [Infrastrutures](#infrastrutures)
+  - [Infrastructures](#infrastructures)
   - [Concepts](#concepts)
   - [Installation](#installation-1)
   - [Infrastructure Development/Creation](#infrastructure-developmentcreation)
@@ -87,7 +87,7 @@ The project uses [GitHub Flow](https://guides.github.com/introduction/flow/). Af
 
 We use "support tiers" for managing resources shared across PR environments and for emulating multi-account isolation of `prod` and `nonprod` via IAM in a single account. These "tiers" are the only manual setup required to launch this project. In the future, we may support, and migrate to, multiple AWS accounts.
 
-### Infrastrutures
+### Infrastructures
 
 - `terraform/admin`: Controls the underlying infrastructure for the other TF infrastructures in automation, and consequently is the **only** one that you'll need to manually change from a local machine to get everything up and running.
 - `terraform/app`: Controls the application support resources like CDN, domain name, etc. Modifications handled by automation.
