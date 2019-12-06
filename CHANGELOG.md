@@ -1,6 +1,10 @@
 Changes
 =======
 
+## UNRELEASED
+
+- Infra: Only create S3 artifacts bucket for non-`prod`.
+
 ## 7.5.1
 
 - Infra: Add tags to all Terraform resources that could add them.

@@ -5,6 +5,8 @@ locals {
 }
 
 resource "aws_s3_bucket" "artifacts" {
+  count = local.ci_count
+
   bucket        = "${local.prefix}-artifacts-${local.account_id}"
   acl           = "private"
   force_destroy = true
