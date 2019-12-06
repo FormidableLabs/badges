@@ -7,8 +7,9 @@
     "node": ">=8"
   },
   "scripts": {
-    "build": "yarn build:docs",
     "build:docs": "doctoc --title '## Contents' README.md DEVELOPMENT.md",
+    "build:tf": "terraform fmt --recursive terraform",
+    "build": "yarn build:docs",
     "ci": "node scripts/ci.js",
     "cd": "node scripts/cd.js",
     "check": "yarn lint",

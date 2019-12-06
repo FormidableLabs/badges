@@ -16,7 +16,7 @@ variable "repo_url" {
 
 variable "ci_buildspec_path" {
   description = "The path to the buildspec for CI jobs within the repo"
-  default = "buildspec.pr.yml"
+  default     = "buildspec.pr.yml"
 }
 
 variable "root_domain_name" {
@@ -37,7 +37,7 @@ variable "repo_name" {
 
 variable "github_token" {
   description = "The personal access token for the Github API."
-  default = ""
+  default     = ""
 }
 
 variable "sauce_access_key" {

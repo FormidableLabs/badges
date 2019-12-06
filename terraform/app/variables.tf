@@ -38,7 +38,7 @@ locals {
     "Service", var.service_name,
     "Tier", var.tier,
     "Stage", var.tier,
-    "TierStage": var.stage,
+    "TierStage", var.stage,
   )
 
   account_id = data.aws_caller_identity.current.account_id

@@ -14,6 +14,8 @@ resource "aws_api_gateway_domain_name" "custom_domain" {
   endpoint_configuration {
     types = ["REGIONAL"]
   }
+
+  tags = local.tags
 }
 
 resource "aws_api_gateway_base_path_mapping" "custom_domain" {

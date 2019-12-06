@@ -5,6 +5,7 @@ locals {
 resource "aws_iam_role" "ci" {
   name               = "tf-${var.service_name}-${var.tier}-role-ci"
   assume_role_policy = data.aws_iam_policy_document.ci_assume.json
+  tags               = local.tags
 }
 
 data "aws_iam_policy_document" "ci_assume" {
