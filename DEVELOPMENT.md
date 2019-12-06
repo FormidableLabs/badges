@@ -49,12 +49,12 @@ Some of our API calls utilize secrets stored in AWS as part of the deployment pr
 
 ```sh
 $ AWS_REGION=<INSERT_REGION> \
-  aws-vault exec <INSERT_AWS_VAULT_PROFILE> -- \
+  aws-vault exec <INSERT_AWS_VAULT_PROFILE> --no-session -- \
   yarn start
 
 # Could look something like
 $ AWS_REGION=us-east-1 \
-  aws-vault exec jane.developer -- \
+  aws-vault exec jane.developer --no-session -- \
   yarn start
 ```
 
