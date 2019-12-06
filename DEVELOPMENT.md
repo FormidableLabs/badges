@@ -173,6 +173,10 @@ As an application developer, everything you need to take a pull request all the 
 - After the pipeline deploys to production, it posts a link to production in the PR. Verify your changes in prod.
 - Merge the pull request!
 
+> ℹ️ **Note**: If multiple pull requests are open, each separate branch must be up-to-date with `master` with CI passing before a merge is possible. We implement this via GitHub [protected branches](https://help.github.com/en/github/administering-a-repository/about-protected-branches). Pull requests are blocked once a branch is out-of-date from `master`, requiring human intervention to catch up a branch and push changes (which will then trigger CI to rebuild the artifact and re-deploy the per-PR application). As a helpful tip, GitHub's pull request interface provides an `Update branch` button when it detects skew from `master`, which may work for an easier developer experience.
+>
+> The motivation for this restriction is that we use a Serverless application artifact generated in a per-PR environment directly as the new "production" via our CodeBuild pipeline. If multiple PRs are open, after one is promoted and merged, then the other branches in open PRs could be missing important changes when next promoted to production. Our protected branch approach entails a little more work for each open pull request, but this approach (1) guarantees new production artifacts are always correct and up to date with `master`, and (2) we avoid the "thundering herd" problem of auto-rebuilding all open PRs when one is merged by pushing manual, lazy work to PR authors.
+
 ### Versioning the project in git
 
 _Only for Formidables / project maintainers_.

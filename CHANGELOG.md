@@ -1,7 +1,7 @@
 Changes
 =======
 
-## UNRELEASED
+## 7.5.1
 
 - Infra: Add tags to all Terraform resources that could add them.
 - Infra: Add tags to Serverless resources + stack.
@@ -10,3 +10,4 @@ Changes
 - Infra: Update `FormidableLabs/serverless/aws` to `0.8.5`
 - Docs: Add TOC to `DEVELOPMENT.md`.
 - Docs: Add more instructions about wrangling `terraform/admin` and making infrastructure changes.
+- Docs: Add more discussion of our CI/CD strategy.

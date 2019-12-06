@@ -1,6 +1,6 @@
 {
   "name": "badges",
-  "version": "7.5.0",
+  "version": "7.5.1",
   "description": "More advanced badges for your projects using Travis or Sauce Labs.",
   "main": "src/index.js",
   "engines": {
