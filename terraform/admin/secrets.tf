@@ -6,6 +6,8 @@ resource "aws_secretsmanager_secret" "sauce_access_key" {
   lifecycle {
     ignore_changes = ["name"]
   }
+
+  tags = local.tags
 }
 
 resource "aws_secretsmanager_secret_version" "sauce_access_key" {
@@ -25,6 +27,8 @@ resource "aws_secretsmanager_secret" "fastly_api_token" {
   lifecycle {
     ignore_changes = ["name"]
   }
+
+  tags = local.tags
 }
 
 resource "aws_secretsmanager_secret_version" "fastly_api_token" {
@@ -44,6 +48,8 @@ resource "aws_secretsmanager_secret" "github_token" {
   lifecycle {
     ignore_changes = ["name"]
   }
+
+  tags = local.tags
 }
 
 resource "aws_secretsmanager_secret_version" "github_token" {
@@ -86,7 +92,7 @@ data "aws_iam_policy_document" "secrets" {
 
     resources = [
       for name in ["sauce-access-key", "fastly-api-token", "github-token"] :
-        "arn:${local.partition}:ssm:${var.region}:${local.account_id}:parameter/aws/reference/secretsmanager/${local.prefix}-${name}"
+      "arn:${local.partition}:ssm:${var.region}:${local.account_id}:parameter/aws/reference/secretsmanager/${local.prefix}-${name}"
     ]
   }
 }

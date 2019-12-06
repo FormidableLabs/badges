@@ -1,6 +1,6 @@
 locals {
   origin_host = aws_api_gateway_domain_name.custom_domain.domain_name
-  domain = var.stage == "production" ? "${var.service_name}.global.ssl.fastly.net" : "${var.service_name}-${var.tier}-${var.stage}.global.ssl.fastly.net"
+  domain      = var.stage == "production" ? "${var.service_name}.global.ssl.fastly.net" : "${var.service_name}-${var.tier}-${var.stage}.global.ssl.fastly.net"
 }
 
 resource "fastly_service_v1" "cdn" {
@@ -23,7 +23,7 @@ resource "fastly_service_v1" "cdn" {
     for_each = var.stage == "production" ? [1] : []
 
     content {
-      name = "${var.service_name}.${var.root_domain_name}"
+      name    = "${var.service_name}.${var.root_domain_name}"
       comment = "Production domain with SSL"
     }
   }
@@ -122,9 +122,9 @@ resource "aws_route53_record" "cdn" {
   count = var.stage == "production" ? 1 : 0
 
   zone_id = var.root_domain_name_zone_id
-  name = var.service_name
-  type = "CNAME"
-  ttl = "5"
+  name    = var.service_name
+  type    = "CNAME"
+  ttl     = "5"
 
   records = [var.fastly_cname_domain]
 }

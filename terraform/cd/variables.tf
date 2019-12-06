@@ -21,7 +21,7 @@ variable "deployment_stages" {
 
 variable "buildspec_path" {
   description = "The path to the buildspec.yml file relative to the repo root."
-  default = "buildspec.cd.yml"
+  default     = "buildspec.cd.yml"
 }
 
 variable "root_domain_name" {
@@ -47,6 +47,8 @@ locals {
   tags = map(
     "Service", var.service_name,
     "Tier", var.tier,
+    "Stage", var.tier,
+    "TierStage", var.stage,
   )
 }
 

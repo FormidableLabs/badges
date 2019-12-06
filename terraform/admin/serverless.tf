@@ -7,7 +7,7 @@ module "serverless" {
   # source = "../../../../../../terraform-aws-serverless//"
 
   source  = "FormidableLabs/serverless/aws"
-  version = "0.8.3"
+  version = "0.8.5"
 
   region           = var.region
   service_name     = var.service_name
@@ -22,7 +22,7 @@ module "serverless_xray" {
   # source = "../../../../../../terraform-aws-serverless//modules/xray"
 
   source  = "FormidableLabs/serverless/aws//modules/xray"
-  version = "0.8.3"
+  version = "0.8.5"
 
   region       = var.region
   service_name = var.service_name
@@ -36,7 +36,7 @@ module "serverless_canary" {
   # source = "../../../../../../terraform-aws-serverless//modules/canary"
 
   source  = "FormidableLabs/serverless/aws//modules/canary"
-  version = "0.8.3"
+  version = "0.8.5"
 
   region       = var.region
   service_name = var.service_name

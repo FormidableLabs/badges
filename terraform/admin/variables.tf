@@ -16,7 +16,7 @@ variable "repo_url" {
 
 variable "ci_buildspec_path" {
   description = "The path to the buildspec for CI jobs within the repo"
-  default = "buildspec.pr.yml"
+  default     = "buildspec.pr.yml"
 }
 
 variable "root_domain_name" {
@@ -37,7 +37,7 @@ variable "repo_name" {
 
 variable "github_token" {
   description = "The personal access token for the Github API."
-  default = ""
+  default     = ""
 }
 
 variable "sauce_access_key" {
@@ -53,9 +53,12 @@ variable "fastly_api_token" {
 locals {
   prefix = "tf-${var.service_name}-${var.tier}"
 
+  # We map tier to stage for normalization against `terraform-aws-serverless`.
+  # No `var.stage` in admin.
   tags = map(
     "Service", var.service_name,
     "Tier", var.tier,
+    "Stage", var.tier,
   )
 
   account_id = data.aws_caller_identity.current.account_id
