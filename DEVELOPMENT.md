@@ -141,10 +141,12 @@ This section is for the initial setup and modification of a given `TIER` for `te
 > ℹ️ **Note**: If you need to modify infrastructures in `terraform/{app,cd}` just edit the files and open a pull request. All the changes are taken care of automagically in automation!
 
 - Set up your AWS credentials. We recommend [aws-vault](https://github.com/99designs/aws-vault).
+
 - (_For Formidables for this project_) Ask `@tptee` or `@ryan-roemer` for AWS, Fastly, Sauce, and Github credentials. You'll need 1password access for the following:
     - `FASTLY_API_TOKEN`: IC vault. `Fastly (Formidable)` > `TOKENS` > `badges (FASTLY_API_TOKEN)`. Named `terraform` in Fastly admin console.
     - `SAUCE_ACCESS_KEY`: IC vault. `Sauce Labs` > `KEYS` > `SAUCE_ACCESS_KEY`.
     - `GITHUB_TOKEN`: IC vault. `GitHub (badges-ci)` > `TOKENS` > `CI (GITHUB_TOKEN)`. Named `badges-ci` in GitHub web console.
+
 - Create/update the nonprod tier with the below command (assuming using `aws-vault`, if not remove line):
 
     ```sh
@@ -163,4 +165,17 @@ This section is for the initial setup and modification of a given `TIER` for `te
     ```
 
 - Create/update the prod tier by repeating the previous command with `TIER=prod`.
-- Open a PR and watch the magic happen for the rest of the infrastruction and application pieces!
+    - > ℹ️ **Note**: When switching `TIER`s using `terragrunt` commands that shell to `terraform init` remember to always select `no` when prompted to "copy existing state". Terraform really wants to munge together different states and it's almost always a bad idea to copy existing state to a remote backend since we use our remote backends as the source of truth.
+
+        ```sh
+        Do you want to copy existing state to the new backend?
+          Pre-existing state was found while migrating the previous ...
+
+          Do you want to overwrite the state in the new backend with the previous state?
+          Enter "yes" to copy and "no" to start with the existing state in the newly
+          configured "s3" backend.
+
+          Enter a value: no
+        ```
+
+- Open a pull request and watch the magic happen for the rest of the infrastruction and application pieces!
