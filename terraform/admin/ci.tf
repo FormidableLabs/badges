@@ -5,14 +5,16 @@ locals {
 }
 
 resource "aws_s3_bucket" "artifacts" {
-  bucket = "${local.prefix}-artifacts-${local.account_id}"
-  acl    = "private"
+  bucket        = "${local.prefix}-artifacts-${local.account_id}"
+  acl           = "private"
   force_destroy = true
 
   # CodePipeline requires versioned buckets.
   versioning {
     enabled = true
   }
+
+  tags = local.tags
 }
 
 resource "aws_codebuild_project" "pr_ci" {
@@ -96,10 +98,7 @@ resource "aws_codebuild_project" "pr_ci" {
     }
   }
 
-  tags = {
-    Tier    = var.tier
-    Service = var.service_name
-  }
+  tags = local.tags
 }
 
 resource "aws_codebuild_webhook" "pr_ci" {

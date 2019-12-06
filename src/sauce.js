@@ -1,11 +1,12 @@
 'use strict';
 
+const { basename } = require('path');
+const log = require('debug')(`badges:${basename(__filename)}`);
 const _ = require('lodash');
 const config = require('config');
 const xml2js = require('xml2js');
 const querystring = require('querystring');
 
-const TravisClient = require('./travis');
 const { cachedRequest, ONE_HOUR, ONE_DAY } = require('./cached-request');
 
 const sauceUser = config.get('sauce.user');
@@ -305,7 +306,7 @@ class SauceClient {
         if (browserData.status === 'unknown') {
           browserData.status = job.consolidated_status;
         } else {
-          console.log(`
+          log(`
             Skipping ${job.browser} ${job.browser_short_version} job with
             error: ${job.error}
           `);
@@ -399,36 +400,6 @@ class SauceClient {
       .then(body => this.parseSVG(body))
       .then(svg => this.aggregateSVGBrowsers(svg));
   }
-}
-
-if (require.main === module) {
-  const onError = err => {
-    console.error(err);
-    // eslint-disable-next-line no-process-exit
-    process.exit(1);
-  };
-  const sauce = new SauceClient('script-atomic-onload');
-  /*
-  sauce.getBuildJobs(process.argv[2]).then((jobs) => {
-    jobs = sauce.filterJobs(jobs, { name: 'loads-js' })
-    console.log(`Found ${jobs.length} job(s).`)
-    console.log(`Build: ${jobs.length ? jobs[0].build : null}`)
-    const browsers = sauce.aggregateBrowsers(jobs)
-    console.log(JSON.stringify(browsers, null, 2))
-  }).catch(onError)
-  */
-  const travis = new TravisClient('exogen', 'script-atomic-onload');
-  travis
-    .getLatestBranchBuild()
-    .then(build => {
-      // eslint-disable-next-line promise/no-nesting,promise/always-return
-      return sauce.getTravisBuildJobs(build).then(jobs => {
-        jobs = sauce.filterJobs(jobs, { name: 'requirejs' });
-        const browsers = sauce.aggregateBrowsers(jobs);
-        console.log(JSON.stringify(browsers, null, 2));
-      });
-    })
-    .catch(onError);
 }
 
 module.exports = { SauceClient };

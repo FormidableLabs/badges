@@ -9,6 +9,9 @@ module.exports = {
   sauce: {
     user: 'FormidableLabs'
   },
+  service: {
+    homePage: 'https://formidable.com/open-source/badges'
+  },
   caching: {
     enabled: true,
     browserMaxAge: 30, // 30 seconds

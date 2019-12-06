@@ -41,19 +41,36 @@ plugins:
 
 provider:
   name: aws
+
   # Required: import the default role that terraform-aws-serverless generates.
   role:
     Fn::ImportValue: tf-${self:custom.service}-${self:custom.tier}-LambdaExecutionRoleArn
-  endpointType: regional
+
+  # Lambda configuration
   runtime: nodejs10.x
+  timeout: 30 # seconds (`300` max)
+  memorySize: 128 # MB value (`1024` default)
+
+  # Deployment / environment configuration
+  endpointType: regional
   region: ${self:custom.region}
   stage: ${self:custom.stage}
   environment:
+    SERVICE_NAME: ${self:custom.service}
     TIER: ${self:custom.tier}
     STAGE: ${self:custom.stage}
-    SERVICE_NAME: ${self:custom.service}
-  timeout: 30 # seconds (`300` max)
-  memorySize: 128 # MB value (`1024` default)
+
+  # AWS Resource Tags: Match terraform module
+  stackTags: # For CF stack
+    Service: ${self:custom.service}
+    Tier: ${self:custom.tier}
+    Stage: ${self:custom.tier}
+    TierStage: ${self:custom.stage}
+  tags: # For resources
+    Service: ${self:custom.service}
+    Tier: ${self:custom.tier}
+    Stage: ${self:custom.tier}
+    TierStage: ${self:custom.stage}
 
 functions:
   app:

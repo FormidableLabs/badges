@@ -1,27 +1,21 @@
 'use strict';
 
-const interceptor = require('express-interceptor');
-const SVGO = require('svgo');
-
 /**
- * SVGO middleware: optimize any SVG response.
+ * Error handling for async routes.
  */
-module.exports = function svgoMiddleware(options) {
-  const svgo = new SVGO(options);
-  return interceptor((req, res) => {
-    return {
-      isInterceptable() {
-        return /image\/svg\+xml(;|$)/.test(res.get('content-type'));
-      },
-      intercept(body, send) {
-        if (body) {
-          svgo.optimize(body, result => {
-            send(result.data);
-          });
-        } else {
-          send(body);
-        }
-      }
-    };
-  });
+const asyncMiddleware = route => (...args) => {
+  // `next` is the last arg.
+  const next = args[args.length - 1];
+
+  // Manually wrap with an error catcher.
+  try {
+    // eslint-disable-next-line promise/no-callback-in-promise
+    return route(...args).catch(err => next(err));
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports = {
+  asyncMiddleware
 };

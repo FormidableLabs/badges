@@ -33,9 +33,12 @@ variable "fastly_cname_domain" {
 locals {
   prefix = "tf-${var.service_name}-${var.tier}-${var.stage}"
 
+  # We map tier to stage for normalization against `terraform-aws-serverless`.
   tags = map(
     "Service", var.service_name,
     "Tier", var.tier,
+    "Stage", var.tier,
+    "TierStage", var.stage,
   )
 
   account_id = data.aws_caller_identity.current.account_id

@@ -13,17 +13,17 @@ locals {
           # lexicographically by map key. This doesn't let us ensure the order
           # of each approval -> deploy step. Use ordered number prefixes in the
           # keys to ensure iteration order.
-          key = "${index}-1-approve-${stage["name"]}",
-          name = "${stage["name"]}-approve",
-          tier = stage["tier"],
-          url = stage["url"],
+          key      = "${index}-1-approve-${stage["name"]}",
+          name     = "${stage["name"]}-approve",
+          tier     = stage["tier"],
+          url      = stage["url"],
           approval = true
         },
         {
-          key = "${index}-2-deploy-${stage["name"]}",
+          key  = "${index}-2-deploy-${stage["name"]}",
           name = stage["name"],
           tier = stage["tier"],
-          url = stage["url"],
+          url  = stage["url"],
         }
       ]
     ]
@@ -32,7 +32,7 @@ locals {
     for stage in local.deployment_stages_list : stage["key"] => stage
   }
   codebuild_deployment_projects = {
-    for stage in local.deployment_stages_list : stage["key"] => stage if !lookup(stage, "approval", false)
+    for stage in local.deployment_stages_list : stage["key"] => stage if ! lookup(stage, "approval", false)
   }
   service_role_arn = "arn:${local.partition}:iam::${local.account_id}:role/tf-${var.service_name}-${var.tier}-role-ci"
   artifacts_bucket = "tf-${var.service_name}-${var.tier}-artifacts-${local.account_id}"
@@ -63,8 +63,8 @@ resource "aws_codepipeline" "cd" {
       output_artifacts = ["build"]
 
       configuration = {
-        S3Bucket = local.artifacts_bucket
-        S3ObjectKey  = "artifact-${var.service_name}-${var.tier}-${var.stage}.zip"
+        S3Bucket    = local.artifacts_bucket
+        S3ObjectKey = "artifact-${var.service_name}-${var.tier}-${var.stage}.zip"
       }
     }
   }
@@ -77,11 +77,11 @@ resource "aws_codepipeline" "cd" {
       name = stage.value["name"]
 
       action {
-        name             = stage.value["name"]
-        category         = lookup(stage.value, "approval", false) ? "Approval" : "Build"
-        owner            = "AWS"
-        provider         = lookup(stage.value, "approval", false) ? "Manual" : "CodeBuild"
-        version          = "1"
+        name     = stage.value["name"]
+        category = lookup(stage.value, "approval", false) ? "Approval" : "Build"
+        owner    = "AWS"
+        provider = lookup(stage.value, "approval", false) ? "Manual" : "CodeBuild"
+        version  = "1"
 
         input_artifacts  = lookup(stage.value, "approval", false) ? null : ["build"]
         output_artifacts = lookup(stage.value, "approval", false) ? null : []
@@ -97,6 +97,8 @@ resource "aws_codepipeline" "cd" {
       }
     }
   }
+
+  tags = local.tags
 }
 
 resource "aws_codebuild_project" "cd" {
@@ -187,9 +189,6 @@ resource "aws_codebuild_project" "cd" {
     }
   }
 
-  tags = {
-    Tier    = each.value["tier"]
-    Service = var.service_name
-  }
+  tags = local.tags
 }
 

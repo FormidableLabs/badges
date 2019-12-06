@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+const log = require('debug')(`badges:${path.basename(__filename)}`);
 const { cachedRequest, ONE_HOUR, ONE_MINUTE } = require('./cached-request');
 const prettyBytes = require('pretty-bytes');
 
@@ -21,9 +23,7 @@ function getFileSize(url, options = {}) {
         if (bytes) {
           return bytes;
         }
-        console.log(
-          'Could not determine size from HEAD request; fetching body.'
-        );
+        log('Could not determine size from HEAD request; fetching body.');
         return cachedRequest(
           url,
           {

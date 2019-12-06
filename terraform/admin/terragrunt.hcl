@@ -10,6 +10,17 @@ terraform {
       TF_VAR_fastly_api_token = "${get_env("FASTLY_API_TOKEN", "")}"
     }
   }
+
+  extra_arguments "init_args" {
+    commands = [
+      "init"
+    ]
+
+    # Always treat remote backend state as controlling.
+    arguments = [
+      "--reconfigure",
+    ]
+  }
 }
 
 remote_state {

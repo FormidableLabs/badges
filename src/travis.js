@@ -118,23 +118,6 @@ class TravisClient {
   }
 }
 
-if (require.main === module) {
-  const onError = err => {
-    console.error(err);
-    // eslint-disable-next-line no-process-exit
-    process.exit(1);
-  };
-  const travis = new TravisClient('exogen', 'script-atomic-onload');
-  travis
-    .getLatestBranchBuild()
-    // eslint-disable-next-line promise/always-return
-    .then(build => {
-      console.log(`Got build ${build.build.id} (#${build.build.number}).`);
-      console.log(JSON.stringify(build, null, 2));
-    })
-    .catch(onError);
-}
-
 module.exports = {
   TravisClient,
   TRAVIS_ORG_ENDPOINT,
