@@ -15,7 +15,9 @@ resource "aws_api_gateway_domain_name" "custom_domain" {
     types = ["REGIONAL"]
   }
 
-  tags = local.tags
+  # TODO: Allegedly tags are supported https://www.terraform.io/docs/providers/aws/r/api_gateway_domain_name.html
+  # but hitting error in build: https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logEvent:group=/aws/codebuild/tf-badges-nonprod-pr-ci;stream=c8cfab7d-2c89-44cc-a06b-dd1b914db500
+  # tags = local.tags
 }
 
 resource "aws_api_gateway_base_path_mapping" "custom_domain" {
