@@ -3,6 +3,7 @@ Changes
 
 ## UNRELEASED
 
+- Deps: Upgrade all dependencies to latest.
 - Infra: Only create S3 artifacts bucket for non-`prod`.
 
 ## 7.5.1
