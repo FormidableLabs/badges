@@ -36,6 +36,11 @@ variable "repo_name" {
   description = "The name of the repo to clone in CI."
 }
 
+variable "terraform_lock_timeout_duration" {
+  description = "The lock timeout for various terraform commands. https://www.terraform.io/docs/commands/init.html#lock-timeout-lt-duration-gt-"
+  default     = "0s"
+}
+
 locals {
   prefix     = "tf-${var.service_name}-${var.tier}-${var.stage}"
   account_id = data.aws_caller_identity.current.account_id

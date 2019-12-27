@@ -84,7 +84,7 @@ resource "aws_codebuild_project" "pr_ci" {
 
     environment_variable {
       name  = "TF_CLI_ARGS"
-      value = "-no-color"
+      value = "-no-color -lock-timeout=${var.terraform_lock_timeout_duration}"
     }
   }
 

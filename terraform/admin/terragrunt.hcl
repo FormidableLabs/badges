@@ -48,4 +48,6 @@ inputs = {
 
   root_domain_name         = "formidable.com"
   root_domain_name_zone_id = "Z11V9C4SUTC8Q6"
+
+  terraform_lock_timeout_duration = "20m"
 }

@@ -50,6 +50,11 @@ variable "fastly_api_token" {
   default     = ""
 }
 
+variable "terraform_lock_timeout_duration" {
+  description = "The lock timeout for various terraform commands. https://www.terraform.io/docs/commands/init.html#lock-timeout-lt-duration-gt-"
+  default     = "0s"
+}
+
 locals {
   prefix = "tf-${var.service_name}-${var.tier}"
 

@@ -1,7 +1,9 @@
 'use strict';
 
-const fs = require('fs-extra');
+const AWS = require('aws-sdk');
 const execa = require('execa');
+const fs = require('fs-extra');
+const Octokit = require('@octokit/rest');
 
 const uploadArtifact = require('./util/upload-artifact');
 const rejectPreviousPipelineExecutions = require('./util/reject-previous-pipeline-executions');
@@ -9,10 +11,15 @@ const { postPrEnvironmentLink } = require('./util/pr-comments');
 
 const name = process.env.SERVICE_NAME;
 const tier = process.env.TIER;
+const repoOwner = process.env.REPO_OWNER;
+const repoName = process.env.REPO_NAME;
+
 const stage =
   process.env.STAGE || process.env.CODEBUILD_SOURCE_VERSION.replace('/', '');
 const shouldDestroy =
   process.env.CODEBUILD_WEBHOOK_EVENT === 'PULL_REQUEST_MERGED';
+
+const cloudformation = new AWS.CloudFormation();
 
 const execaOpts = {
   stdio: 'inherit',
@@ -21,6 +28,48 @@ const execaOpts = {
     STAGE: stage
   }
 };
+
+const isHeadCommitOfPR = async () => {
+  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+  const { data } = await octokit.pulls.listCommits({
+    owner: repoOwner,
+    repo: repoName,
+    // eslint-disable-next-line camelcase
+    pull_number: process.env.CODEBUILD_SOURCE_VERSION.replace('pr/', '')
+  });
+
+  const headCommit = data[data.length - 1].sha;
+  return headCommit === process.env.CODEBUILD_RESOLVED_SOURCE_VERSION;
+};
+
+const stackReadyForDeploy = async () => {
+  const params = {
+    StackName: `sls-${name}-${tier}-${stage}`
+  };
+
+  // eslint-disable-next-line no-console
+  console.log('\nChecking if CloudFormation stack is ready...');
+
+  await Promise.race(
+    [('stackCreateComplete', 'stackUpdateComplete')].map(event =>
+      cloudformation.waitFor(event, params).promise()
+    )
+  );
+
+  // eslint-disable-next-line no-console
+  console.log('CloudFormation stack is ready\n\n');
+};
+
+const getTerragruntArgs = (command, workingDir) =>
+  [].concat(
+    command,
+    [
+      '-auto-approve',
+      '--terragrunt-non-interactive',
+      '--terragrunt-working-dir'
+    ],
+    workingDir
+  );
 
 const create = async () => {
   // If testing locally, removes any leftover artifact folders to ensure that
@@ -37,18 +86,17 @@ const create = async () => {
   );
 
   // Deploy the Serverless package to the PR environment.
+  await stackReadyForDeploy();
+
+  if (!(await isHeadCommitOfPR())) {
+    throw new Error('Commit is not at head of PR branch. Aborting...');
+  }
   await execa('yarn', ['sls', 'deploy', '--package', '.serverless'], execaOpts);
 
   // Apply any Terraform that accommodates this stage.
   await execa(
     'terragrunt',
-    [
-      'apply',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/app'
-    ],
+    getTerragruntArgs('apply', 'terraform/app'),
     execaOpts
   );
 
@@ -64,13 +112,7 @@ const create = async () => {
   // Create the CD pipeline for deploying this PR to production.
   await execa(
     'terragrunt',
-    [
-      'apply',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/cd'
-    ],
+    getTerragruntArgs('apply', 'terraform/cd'),
     execaOpts
   );
 
@@ -86,26 +128,14 @@ const destroy = async () => {
   // Destroy the CD pipeline for this PR.
   await execa(
     'terragrunt',
-    [
-      'destroy',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/cd'
-    ],
+    getTerragruntArgs('destroy', 'terraform/cd'),
     execaOpts
   );
 
   // Destroy any Terraform accommodating this stage.
   await execa(
     'terragrunt',
-    [
-      'destroy',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/app'
-    ],
+    getTerragruntArgs('destroy', 'terraform/app'),
     execaOpts
   );
 
@@ -113,7 +143,7 @@ const destroy = async () => {
   await execa.command('yarn sls remove', execaOpts);
 };
 
-const main = () => {
+const main = async () => {
   if (!tier) {
     throw new Error('Tier not provided.');
   }
@@ -129,9 +159,14 @@ const main = () => {
 };
 
 if (require.main === module) {
-  main().catch(err => {
-    console.error(err);
+  main()
+    // The AWS SDK `waitFor` method sets up listeners without a straightforward way to cancel them.
+    // This will cause the process to hang so force exit here...
     // eslint-disable-next-line no-process-exit
-    process.exit(1);
-  });
+    .then(() => process.exit(0))
+    .catch(err => {
+      console.error(err);
+      // eslint-disable-next-line no-process-exit
+      process.exit(1);
+    });
 }
