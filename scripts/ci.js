@@ -22,6 +22,18 @@ const execaOpts = {
   }
 };
 
+const getTerragruntArgs = (command, workingDir) =>
+  [].concat(
+    command,
+    [
+      '-auto-approve',
+      '-lock-timeout=5m',
+      '--terragrunt-non-interactive',
+      '--terragrunt-working-dir'
+    ],
+    workingDir
+  );
+
 const create = async () => {
   // If testing locally, removes any leftover artifact folders to ensure that
   // they don't get repackaged during `sls package`.
@@ -42,13 +54,7 @@ const create = async () => {
   // Apply any Terraform that accommodates this stage.
   await execa(
     'terragrunt',
-    [
-      'apply',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/app'
-    ],
+    getTerragruntArgs('apply', 'terraform/app'),
     execaOpts
   );
 
@@ -64,13 +70,7 @@ const create = async () => {
   // Create the CD pipeline for deploying this PR to production.
   await execa(
     'terragrunt',
-    [
-      'apply',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/cd'
-    ],
+    getTerragruntArgs('apply', 'terraform/cd'),
     execaOpts
   );
 
@@ -86,26 +86,14 @@ const destroy = async () => {
   // Destroy the CD pipeline for this PR.
   await execa(
     'terragrunt',
-    [
-      'destroy',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/cd'
-    ],
+    getTerragruntArgs('destroy', 'terraform/cd'),
     execaOpts
   );
 
   // Destroy any Terraform accommodating this stage.
   await execa(
     'terragrunt',
-    [
-      'destroy',
-      '-auto-approve',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir',
-      'terraform/app'
-    ],
+    getTerragruntArgs('destroy', 'terraform/app'),
     execaOpts
   );
 

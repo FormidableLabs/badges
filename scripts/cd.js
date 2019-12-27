@@ -43,6 +43,7 @@ const main = async () => {
     [
       'apply',
       '-auto-approve',
+      '-lock-timeout=5m',
       '--terragrunt-non-interactive',
       '--terragrunt-working-dir',
       'terraform/app'
