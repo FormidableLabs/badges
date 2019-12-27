@@ -14,6 +14,9 @@ const stage =
 const shouldDestroy =
   process.env.CODEBUILD_WEBHOOK_EVENT === 'PULL_REQUEST_MERGED';
 
+const SLS_DEPLOY_RETRY_MAX_ATTEMPTS = 2;
+const SLS_DEPLOY_RETRY_SLEEP_INTERVAL = 60 * 1000;
+
 const execaOpts = {
   stdio: 'inherit',
   env: {
@@ -34,6 +37,34 @@ const getTerragruntArgs = (command, workingDir) =>
     workingDir
   );
 
+// eslint-disable-next-line promise/avoid-new
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const slsDeployWithRetry = async (attempt = 0) => {
+  if (attempt === SLS_DEPLOY_RETRY_MAX_ATTEMPTS) {
+    throw new Error('Reached max retries for sls deploy. Giving up...');
+  }
+
+  if (attempt > 0) {
+    // eslint-disable-next-line no-console
+    console.log('Waiting to retry sls deploy...');
+    await wait(SLS_DEPLOY_RETRY_SLEEP_INTERVAL);
+  }
+
+  const { stdout, stderr } = await execa(
+    'yarn',
+    ['sls', 'deploy', '--package', '.serverless'],
+    execaOpts
+  );
+  const out = `${stdout} ${stderr}`;
+  if (
+    out.includes('UPDATE_IN_PROGRESS') ||
+    out.includes('UPDATE_COMPLETE_CLEANUP_IN_PROGRESS')
+  ) {
+    await slsDeployWithRetry(attempt + 1);
+  }
+};
+
 const create = async () => {
   // If testing locally, removes any leftover artifact folders to ensure that
   // they don't get repackaged during `sls package`.
@@ -49,7 +80,7 @@ const create = async () => {
   );
 
   // Deploy the Serverless package to the PR environment.
-  await execa('yarn', ['sls', 'deploy', '--package', '.serverless'], execaOpts);
+  await slsDeployWithRetry();
 
   // Apply any Terraform that accommodates this stage.
   await execa(
