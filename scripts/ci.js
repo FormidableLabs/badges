@@ -51,17 +51,21 @@ const slsDeployWithRetry = async (attempt = 0) => {
     await wait(SLS_DEPLOY_RETRY_SLEEP_INTERVAL);
   }
 
-  const { stdout, stderr } = await execa(
-    'yarn',
-    ['sls', 'deploy', '--package', '.serverless'],
-    execaOpts
-  );
-  const out = `${stdout} ${stderr}`;
-  if (
-    out.includes('UPDATE_IN_PROGRESS') ||
-    out.includes('UPDATE_COMPLETE_CLEANUP_IN_PROGRESS')
-  ) {
-    await slsDeployWithRetry(attempt + 1);
+  try {
+    await execa(
+      'yarn',
+      ['sls', 'deploy', '--package', '.serverless'],
+      execaOpts
+    );
+  } catch (err) {
+    if (
+      err.all.includes('UPDATE_IN_PROGRESS') ||
+      err.all.includes('UPDATE_COMPLETE_CLEANUP_IN_PROGRESS')
+    ) {
+      await slsDeployWithRetry(attempt + 1);
+    } else {
+      throw err;
+    }
   }
 };
 
