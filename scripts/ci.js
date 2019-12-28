@@ -14,7 +14,7 @@ const stage =
 const shouldDestroy =
   process.env.CODEBUILD_WEBHOOK_EVENT === 'PULL_REQUEST_MERGED';
 
-const SLS_DEPLOY_RETRY_MAX_ATTEMPTS = 2;
+const SLS_DEPLOY_RETRY_MAX_ATTEMPTS = 5;
 const SLS_DEPLOY_RETRY_SLEEP_INTERVAL = 60 * 1000;
 
 const execaOpts = {
@@ -41,7 +41,7 @@ const getTerragruntArgs = (command, workingDir) =>
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const slsDeployWithRetry = async (attempt = 0) => {
-  if (attempt === SLS_DEPLOY_RETRY_MAX_ATTEMPTS) {
+  if (attempt > SLS_DEPLOY_RETRY_MAX_ATTEMPTS) {
     throw new Error('Reached max retries for sls deploy. Giving up...');
   }
 
