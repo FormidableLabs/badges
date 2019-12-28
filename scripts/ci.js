@@ -25,17 +25,20 @@ const execaOpts = {
   }
 };
 
-const getTerragruntArgs = (command, workingDir) =>
-  [].concat(
-    command,
-    [
-      '-auto-approve',
-      '-lock-timeout=5m',
-      '--terragrunt-non-interactive',
-      '--terragrunt-working-dir'
-    ],
-    workingDir
-  );
+const isHeadCommitOfPR = async () => {
+  const prNumber = process.env.CODEBUILD_SOURCE_VERSION.replace('pr/', '');
+
+  const { stdout } = await execa('curl', [
+    '-H',
+    '"Authorization:',
+    'token',
+    'af44915f4ca561674d3948c511da4290d69a4c4d"',
+    `https://api.github.com/repos/FormidableLabs/badges/pulls/${prNumber}/commits`
+  ]);
+
+  const headCommit = JSON.parse(stdout).pop().sha;
+  return headCommit === process.env.CODEBUILD_RESOLVED_SOURCE_VERSION;
+};
 
 // eslint-disable-next-line promise/avoid-new
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -49,6 +52,10 @@ const slsDeployWithRetry = async (attempt = 0) => {
     // eslint-disable-next-line no-console
     console.log('Waiting to retry sls deploy...');
     await wait(SLS_DEPLOY_RETRY_SLEEP_INTERVAL);
+  }
+
+  if (!(await isHeadCommitOfPR())) {
+    throw new Error('Commit is not at head of PR branch. Aborting...');
   }
 
   try {
@@ -73,6 +80,18 @@ const slsDeployWithRetry = async (attempt = 0) => {
     }
   }
 };
+
+const getTerragruntArgs = (command, workingDir) =>
+  [].concat(
+    command,
+    [
+      '-auto-approve',
+      '-lock-timeout=5m',
+      '--terragrunt-non-interactive',
+      '--terragrunt-working-dir'
+    ],
+    workingDir
+  );
 
 const create = async () => {
   // If testing locally, removes any leftover artifact folders to ensure that
