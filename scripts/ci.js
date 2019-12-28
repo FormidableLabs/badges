@@ -52,11 +52,16 @@ const slsDeployWithRetry = async (attempt = 0) => {
   }
 
   try {
-    await execa(
+    const subprocess = execa(
       'yarn',
       ['sls', 'deploy', '--package', '.serverless'],
-      execaOpts
+      { ...execaOpts, stdio: 'pipe', all: true }
     );
+
+    subprocess.stdout.pipe(process.stdout);
+    subprocess.stderr.pipe(process.stderr);
+
+    await subprocess;
   } catch (err) {
     if (
       err.all.includes('UPDATE_IN_PROGRESS') ||
