@@ -32,7 +32,7 @@ const isHeadCommitOfPR = async () => {
     '-H',
     '"Authorization:',
     'token',
-    'af44915f4ca561674d3948c511da4290d69a4c4d"',
+    `${process.env.GITHUB_TOKEN}"`,
     `https://api.github.com/repos/FormidableLabs/badges/pulls/${prNumber}/commits`
   ]);
 
