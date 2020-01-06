@@ -50,6 +50,11 @@ resource "aws_iam_role_policy_attachment" "ci_admin" {
   policy_arn = module.serverless.iam_policy_admin_arn
 }
 
+resource "aws_iam_role_policy_attachment" "ci_developer" {
+  role       = aws_iam_role.ci.name
+  policy_arn = module.serverless.iam_policy_developer_arn
+}
+
 resource "aws_iam_role_policy_attachment" "ci_cd_lambdas" {
   role       = aws_iam_role.ci.name
   policy_arn = module.serverless.iam_policy_cd_lambdas_arn

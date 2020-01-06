@@ -33,4 +33,6 @@ inputs = {
     tier = "prod"
     url = "${get_env("SERVICE_NAME", "badges")}.formidable.com",
   }]
+
+  terraform_lock_timeout_duration = "20m"
 }
