@@ -35,7 +35,7 @@
     "lodash": "^4.17.15",
     "lru-cache": "^5.1.1",
     "marko": "^4.18.27",
-    "pdfkit": "^0.10.0",
+    "pdfkit": "^0.11.0",
     "pretty-bytes": "^5.3.0",
     "request": "^2.88.0",
     "serverless-http": "^2.3.1",
