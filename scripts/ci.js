@@ -46,28 +46,26 @@ const isHeadCommitOfPR = async () => {
 
 const stackReadyForDeploy = async () => {
   const stack = `sls-${name}-${tier}-${stage}`;
-  const params = {
-    StackName: stack
-  };
+  let stackMsg = 'is ready';
 
   log('\nChecking if CloudFormation stack is ready...');
 
   await Promise.race(
     [('stackCreateComplete', 'stackUpdateComplete')].map(event =>
-      cloudformation.waitFor(event, params).promise()
+      cloudformation.waitFor(event, { StackName: stack }).promise()
     )
   ).catch(err => {
     // Allow non-existent CF stack (like on initial PR creation).
     const originalError = err.originalError || {};
     if (originalError.message === `Stack with id ${stack} does not exist`) {
-      log('\nCloudFormation stack does not exist (continuing)...');
+      stackMsg = 'does not exist (continuing)';
       return;
     }
 
     throw err;
   });
 
-  log('CloudFormation stack is ready\n\n');
+  log(`CloudFormation stack ${stackMsg}\n\n`);
 };
 
 const getTerragruntArgs = (command, workingDir) =>
