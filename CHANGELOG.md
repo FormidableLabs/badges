@@ -3,6 +3,8 @@ Changes
 
 ## UNRELEASED
 
+- Bugfix: Allow empty Serverless CloudFormation stack when checking if stack is ready. [#49](https://github.com/FormidableLabs/badges/pull/49)
+- Infra: Update Fastly shield POP to `bwi-va-us`.
 - Deps: Upgrade all dependencies to latest.
 - Infra: Only create S3 artifacts bucket for non-`prod`.
 
