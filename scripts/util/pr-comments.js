@@ -20,6 +20,8 @@ const getOctokitClient = memoize(async (name, tier) => {
   return new Octokit({ auth: SecretString });
 });
 
+const firstCaps = str => str.replace(/.{1}/, m => m.toUpperCase());
+
 const getExamples = ({ endpoint }) =>
   [
     'size/github/FormidableLabs/react-fast-compare/master/index.js',
@@ -73,7 +75,7 @@ const postDeploymentLink = async ({ name, stage, tier }) => {
   }.${ROOT_DOMAIN}`;
   const examples = getExamples({ endpoint });
   const body = `
-## ${stage} Deployment
+## ${firstCaps(stage)} Deployment
 
 Deployed this PR to **\`${stage}\`** at \`${endpoint}\`!
 
