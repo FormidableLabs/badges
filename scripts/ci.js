@@ -21,6 +21,8 @@ const shouldDestroy =
 
 const cloudformation = new AWS.CloudFormation();
 
+const { log } = console;
+
 const execaOpts = {
   stdio: 'inherit',
   env: {
@@ -43,21 +45,27 @@ const isHeadCommitOfPR = async () => {
 };
 
 const stackReadyForDeploy = async () => {
-  const params = {
-    StackName: `sls-${name}-${tier}-${stage}`
-  };
+  const stack = `sls-${name}-${tier}-${stage}`;
+  let stackMsg = 'is ready';
 
-  // eslint-disable-next-line no-console
-  console.log('\nChecking if CloudFormation stack is ready...');
+  log('\nChecking if CloudFormation stack is ready...');
 
   await Promise.race(
     [('stackCreateComplete', 'stackUpdateComplete')].map(event =>
-      cloudformation.waitFor(event, params).promise()
+      cloudformation.waitFor(event, { StackName: stack }).promise()
     )
-  );
+  ).catch(err => {
+    // Allow non-existent CF stack (like on initial PR creation).
+    const originalError = err.originalError || {};
+    if (originalError.message === `Stack with id ${stack} does not exist`) {
+      stackMsg = 'does not exist (continuing)';
+      return;
+    }
 
-  // eslint-disable-next-line no-console
-  console.log('CloudFormation stack is ready\n\n');
+    throw err;
+  });
+
+  log(`CloudFormation stack ${stackMsg}\n\n`);
 };
 
 const getTerragruntArgs = (command, workingDir) =>
