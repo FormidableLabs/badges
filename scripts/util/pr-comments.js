@@ -20,11 +20,8 @@ const getOctokitClient = memoize(async (name, tier) => {
   return new Octokit({ auth: SecretString });
 });
 
-const postPrEnvironmentLink = async ({ name, stage, tier }) => {
-  const octokit = await getOctokitClient(name, tier);
-
-  const endpoint = `https://${name}-${tier}-${stage}.freetls.fastly.net`;
-  const examples = [
+const getExamples = ({ endpoint }) =>
+  [
     'size/github/FormidableLabs/react-fast-compare/master/index.js',
     'size/npm/victory/dist/victory.min.js?gzip=true',
     'browsers?firefox=20,26&iexplore=!8,-9,10',
@@ -38,12 +35,8 @@ const postPrEnvironmentLink = async ({ name, stage, tier }) => {
     )
     .join('\n');
 
-  const body = `
-Deployed PR environment to ${endpoint}! Here are some suggested testing endpoints:
-
-${examples}
-
-If you are an admin, deploy to production from the [pipeline page in AWS](https://${region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/tf-${name}-${tier}-${stage}/view?region=${region}).`;
+const createComment = async ({ name, stage, tier, body }) => {
+  const octokit = await getOctokitClient(name, tier);
 
   // convert stage name pr7 to the number 7 for the issues API
   const issueNumber = stage.replace('pr', '');
@@ -56,24 +49,39 @@ If you are an admin, deploy to production from the [pipeline page in AWS](https:
   });
 };
 
-const postDeploymentLink = async ({ name, stage, tier }) => {
-  const octokit = await getOctokitClient(name, tier);
+const postPrEnvironmentLink = async ({ name, stage, tier }) => {
+  const pipeline = `https://${region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/tf-${name}-${tier}-${stage}/view?region=${region}`;
+  const endpoint = `https://${name}-${tier}-${stage}.freetls.fastly.net`;
+  const examples = getExamples({ endpoint });
+  const body = `
+## PR Deployment
 
+Deployed PR environment to \`${endpoint}\`!
+
+**Examples**:
+
+${examples}
+
+**Deployment**: If you are an admin, deploy to production from the [AWS pipeline page](${pipeline}).`;
+
+  await createComment({ name, stage, tier, body });
+};
+
+const postDeploymentLink = async ({ name, stage, tier }) => {
   const endpoint = `https://${name}${
     stage === 'production' ? '' : `-${stage}`
   }.${ROOT_DOMAIN}`;
+  const examples = getExamples({ endpoint });
+  const body = `
+## ${stage} Deployment
 
-  const body = `Deployed this PR to ${stage}! View at ${endpoint}!`;
+Deployed this PR to **\`${stage}\`** at \`${endpoint}\`!
 
-  // convert stage name pr7 to the number 7 for the issues API
-  const issueNumber = PR_STAGE.replace('pr', '');
+**Examples**:
 
-  await octokit.issues.createComment({
-    owner: REPO_OWNER,
-    repo: REPO_NAME,
-    issue_number: issueNumber,
-    body
-  });
+${examples}`;
+
+  await createComment({ name, stage: PR_STAGE, tier, body });
 };
 
 module.exports = {
