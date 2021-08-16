@@ -83,7 +83,7 @@
   },
   "homepage": "https://github.com/FormidableLabs/badges#readme",
   "volta": {
-    "node": "10.16.3",
+    "node": "10.19.0",
     "yarn": "1.17.3"
   }
 }
