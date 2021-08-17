@@ -4,36 +4,53 @@ package:
   # The CD project provides this environment variable to use an existing
   # Serverless artifact, bypassing the packaging step entirely
   artifact: "${env:SLS_ARTIFACT, ''}"
-  include:
-    # Root level
-    - "!*"
-    - "package.json"
-    # Source directories
-    - "src/**"
-    - "!aws/**"
-    - "!terraform"
-    - "!terraform/**"
-    # General exclusions
-    - "!**/.DS_Store"
-    - "!**/yarn.lock"
-    - "!**/package-lock.json"
-    - "!**/node_modules/.yarn-integrity"
-    - "!**/node_modules/.cache/**"
-    # Dependencies
-    - "!node_modules/aws-sdk"
-    - "!node_modules/aws-sdk/**"
-    - "!**/node_modules/aws-sdk"
-    - "!**/node_modules/aws-sdk/**"
-    - "!**/node_modules/*/CHANGELOG.md"
-    - "!**/node_modules/*/HISTORY.md"
-    - "!**/node_modules/*/LICENSE"
-    - "!**/node_modules/*/README.md"
+  # include:
+  #   # Root level
+  #   - "!*"
+  #   - "package.json"
+  #   # Source directories
+  #   - "src/**"
+  #   - "!aws/**"
+  #   - "!terraform"
+  #   - "!terraform/**"
+  #   # General exclusions
+  #   - "!**/.DS_Store"
+  #   - "!**/yarn.lock"
+  #   - "!**/package-lock.json"
+  #   - "!**/node_modules/.yarn-integrity"
+  #   - "!**/node_modules/.cache/**"
+  #   # Dependencies
+  #   - "!node_modules/aws-sdk"
+  #   - "!node_modules/aws-sdk/**"
+  #   - "!**/node_modules/aws-sdk"
+  #   - "!**/node_modules/aws-sdk/**"
+  #   - "!**/node_modules/*/CHANGELOG.md"
+  #   - "!**/node_modules/*/HISTORY.md"
+  #   - "!**/node_modules/*/LICENSE"
+  #   - "!**/node_modules/*/README.md"
 
 custom:
   service: ${env:SERVICE_NAME}
   region: ${opt:region, env:AWS_REGION}
   tier: ${env:TIER}
   stage: ${opt:stage, env:STAGE}
+  jetpack:
+    preInclude:
+      - "!**"
+    trace:
+      ignores:
+        - aws-sdk
+      dynamic:
+        resolutions:
+          "express/lib/view.js": []
+          "config/parser.js": []
+          "config/lib/config.js": []
+          "marko/dist/hot-reload.js": []
+          "marko/dist/loader/index-default.js": []
+          "marko/dist/node-require/index.js": []
+          "marko/src/hot-reload.js": []
+          "marko/src/loader/index-default.js": []
+          "marko/src/node-require/index.js": []
 
 plugins:
   - serverless-jetpack
@@ -82,6 +99,9 @@ functions:
       # type: Canary10Percent5Minutes
       type: AllAtOnce
       alias: Live
+    jetpack:
+      include:
+        - src/index.js
 
 resources:
   Resources:

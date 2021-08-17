@@ -4,12 +4,13 @@
   "description": "More advanced badges for your projects using Travis or Sauce Labs.",
   "main": "src/index.js",
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "scripts": {
+    "build:marko": "node scripts/build.js",
     "build:docs": "doctoc --title '## Contents' README.md DEVELOPMENT.md",
     "build:tf": "terraform fmt --recursive terraform",
-    "build": "yarn build:docs && yarn build:tf",
+    "build": "yarn build:marko && yarn build:docs && yarn build:tf",
     "ci": "node scripts/ci.js",
     "cd": "node scripts/cd.js",
     "check": "yarn lint",
