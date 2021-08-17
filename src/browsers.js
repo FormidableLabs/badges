@@ -1,13 +1,10 @@
 'use strict';
 
 const _ = require('lodash');
-const marko = require('marko');
 
 const { measureTextWidth } = require('./text');
 
-const template = marko.load(require.resolve('./browsers.svg'), {
-  writeToDisk: false
-});
+const template = require('./browsers.svg.js');
 
 const BROWSERS = {
   android: {

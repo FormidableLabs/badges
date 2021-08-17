@@ -51,7 +51,7 @@ const stackReadyForDeploy = async () => {
   log('\nChecking if CloudFormation stack is ready...');
 
   await Promise.race(
-    [('stackCreateComplete', 'stackUpdateComplete')].map(event =>
+    ['stackCreateComplete', 'stackUpdateComplete'].map(event =>
       cloudformation.waitFor(event, { StackName: stack }).promise()
     )
   ).catch(err => {
