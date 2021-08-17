@@ -38,6 +38,8 @@ custom:
     preInclude:
       - "!**"
     trace:
+      include:
+        - config/*.js
       ignores:
         - aws-sdk
       dynamic:
