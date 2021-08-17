@@ -4,6 +4,8 @@ package:
   # The CD project provides this environment variable to use an existing
   # Serverless artifact, bypassing the packaging step entirely
   artifact: "${env:SLS_ARTIFACT, ''}"
+  include:
+    - node_modules/unicode-properties/data.trie
   # include:
   #   # Root level
   #   - "!*"
@@ -40,7 +42,6 @@ custom:
     trace:
       include:
         - config/*.js
-        - node_modules/unicode-properties/data.trie
       ignores:
         - aws-sdk
       dynamic:
