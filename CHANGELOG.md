@@ -3,6 +3,7 @@ Changes
 
 ## UNRELEASED
 
+- Infra: Update Fastly shield POP to `iad-va-us`, Lambda runtime to `nodejs14.x`.
 - Bugfix: Allow empty Serverless CloudFormation stack when checking if stack is ready. [#49](https://github.com/FormidableLabs/badges/pull/49)
 - Infra: Update Fastly shield POP to `bwi-va-us`.
 - Deps: Upgrade all dependencies to latest.
