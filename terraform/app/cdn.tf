@@ -35,14 +35,8 @@ resource "fastly_service_v1" "cdn" {
 
     # Ashburn, Virginia (closest to AWS us-east-1).
     #
-    # NOTE: if using a different region, find the POP on the below map that lives
-    # closest to your origin server's region.
-    #
-    # From https://docs.fastly.com/guides/performance-tuning/shielding#enabling-shielding :
-    # > Generally, we recommend selecting a datacenter close to your backend.
-    # > Doing this allows faster content delivery because we optimize requests
-    # > between the shield POP you're selecting (the one close to your server)
-    # > and the edge POP (the one close to the user making the request)."
+    # See the guide at: https://developer.fastly.com/learning/concepts/shielding/#choosing-a-shield-location
+    # for a list of cloud provider DCs to shield locations.
     #
     # To programmatically get a list of POPs, try the following (assumes `jq` installed):
     #
@@ -51,7 +45,7 @@ resource "fastly_service_v1" "cdn" {
     #     curl -sS https://api.fastly.com/datacenters \
     #       -H "Fastly-Key: ${FASTLY_API_TOKEN}" |  jq )
     # ```
-    shield = "bwi-va-us"
+    shield = "iad-va-us"
 
     use_ssl           = true
     min_tls_version   = "1.2"
