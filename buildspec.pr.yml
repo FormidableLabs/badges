@@ -6,7 +6,7 @@ env:
 phases:
   install:
     runtime-versions:
-      nodejs: 10
+      nodejs: 14
     commands:
       # Uncomment to test against a branch of terraform-aws-serverless
       # - export TERRAFORM_AWS_SERVERLESS_BRANCH=feature/fix-canary-iam
