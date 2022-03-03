@@ -301,3 +301,8 @@ the server’s `TRAVIS_ENDPOINT` environment variable. You can force the public
   `style`
 
   Same as the `/sauce/:user` endpoint above.
+
+
+## Maintenance Status
+
+**Active:** Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome.
