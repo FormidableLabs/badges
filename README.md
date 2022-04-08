@@ -1,5 +1,7 @@
 # Badges
 
+[![Maintenance Status][maintenance-image]](#maintenance-status)
+
 Advanced badges for your projects using Travis or Sauce Labs.
 
 Read more about about the service and how we built it at ["Living On The Edge: Lazy Static Sites With Modern CDNs And Lambda"](https://formidable.com/blog/2019/modern-cdns-lambda/)!
@@ -306,3 +308,5 @@ the server’s `TRAVIS_ENDPOINT` environment variable. You can force the public
 ## Maintenance Status
 
 **Active:** Formidable is actively working on this project, and we expect to continue for work for the foreseeable future. Bug reports, feature requests and pull requests are welcome.
+
+[maintenance-image]: https://img.shields.io/badge/maintenance-active-green.svg?color=brightgreen&style=flat
