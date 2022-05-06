@@ -7,17 +7,18 @@ const Octokit = require('@octokit/rest');
 
 const uploadArtifact = require('./util/upload-artifact');
 const rejectPreviousPipelineExecutions = require('./util/reject-previous-pipeline-executions');
-const { postPrEnvironmentLink } = require('./util/pr-comments');
 
 const name = process.env.SERVICE_NAME;
 const tier = process.env.TIER;
 const repoOwner = process.env.REPO_OWNER;
 const repoName = process.env.REPO_NAME;
 
-const stage =
-  process.env.STAGE || process.env.CODEBUILD_SOURCE_VERSION.replace('/', '');
+const stage = process.env.BRANCH_NAME || `pr${process.env.PULL_REQUEST_NUMBER}`;
+
 const shouldDestroy =
-  process.env.CODEBUILD_WEBHOOK_EVENT === 'PULL_REQUEST_MERGED';
+  process.env.GITHUB_EVENT_NAME === 'delete' ||
+  (process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+    process.env.GITHUB_ACTION === 'closed');
 
 const cloudformation = new AWS.CloudFormation();
 
@@ -26,22 +27,37 @@ const { log } = console;
 const execaOpts = {
   stdio: 'inherit',
   env: {
+    SERVICE_NAME: name,
     TIER: tier,
     STAGE: stage
   }
 };
 
 const isHeadCommitOfPR = async () => {
+  // If this isn't a pull request
+  if (
+    isNaN(process.env.PULL_REQUEST_NUMBER) ||
+    !process.env.PULL_REQUEST_NUMBER
+  ) {
+    return true;
+  }
+
   const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
   const { data } = await octokit.pulls.listCommits({
     owner: repoOwner,
     repo: repoName,
     // eslint-disable-next-line camelcase
-    pull_number: process.env.CODEBUILD_SOURCE_VERSION.replace('pr/', '')
+    pull_number: process.env.PULL_REQUEST_NUMBER,
+    // Default is 30, may have to use pages if we exceed 100
+    // eslint-disable-next-line camelcase
+    per_page: 100
   });
 
   const headCommit = data[data.length - 1].sha;
-  return headCommit === process.env.CODEBUILD_RESOLVED_SOURCE_VERSION;
+  // There's some weirdness if there's only one commit on a pull
+  // request. GitHub actions has some difficulty pulling in that
+  // hash
+  return headCommit === process.env.GITHUB_HASH || data.length < 2;
 };
 
 const stackReadyForDeploy = async () => {
@@ -123,13 +139,6 @@ const create = async () => {
     getTerragruntArgs('apply', 'terraform/cd'),
     execaOpts
   );
-
-  await Promise.all([
-    // Post a link to the PR with the PR environment URL.
-    postPrEnvironmentLink({ name, tier, stage }),
-    // Remove the artifact now that it's in S3.
-    fs.remove('serverless-artifact.zip')
-  ]);
 };
 
 const destroy = async () => {
