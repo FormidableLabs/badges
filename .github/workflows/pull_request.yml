@@ -7,4 +7,3 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run : echo "Testing that this is working"
-      - run : echo "Another test"
