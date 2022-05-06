@@ -1,7 +1,6 @@
 'use strict';
 
 const execa = require('execa');
-const { postDeploymentLink } = require('./util/pr-comments');
 
 const { SERVICE_NAME, TIER, STAGE } = process.env;
 
@@ -49,9 +48,6 @@ const main = async () => {
     ],
     execaOpts
   );
-
-  // Post link to this stage on the PR we deployed.
-  await postDeploymentLink({ name: SERVICE_NAME, stage: STAGE, tier: TIER });
 };
 
 if (require.main === module) {
