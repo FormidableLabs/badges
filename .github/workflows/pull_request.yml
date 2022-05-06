@@ -6,5 +6,4 @@ jobs:
   pull_request:
     runs-on: ubuntu-latest
     steps:
-      - run : echo "Testing that this is working"
-      - run : echo "Another test"
+      - run : echo "Which GitHub Action runs?"
