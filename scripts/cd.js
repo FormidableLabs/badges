@@ -1,7 +1,6 @@
 'use strict';
 
 const execa = require('execa');
-const { postDeploymentLink } = require('./util/pr-comments');
 
 const { SERVICE_NAME, TIER, STAGE } = process.env;
 
@@ -32,10 +31,14 @@ const main = async () => {
   // Note: this "package" command doesn't actually repackage the code artifact.
   // It just regenerates the Serverless CloudFormation templates so that
   // they point to production instead of the PR environment.
-  await execa.command('yarn sls package', execaOpts);
+  await execa.command('yarn sls package --verbose', execaOpts);
 
   // Deploy the promoted artifact.
-  await execa('yarn', ['sls', 'deploy', '--package', '.serverless'], execaOpts);
+  await execa(
+    'yarn',
+    ['sls', 'deploy', '--verbose', '--package', '.serverless'],
+    execaOpts
+  );
 
   // Apply any corresponding Terraform for this stage.
   await execa(
@@ -49,9 +52,6 @@ const main = async () => {
     ],
     execaOpts
   );
-
-  // Post link to this stage on the PR we deployed.
-  await postDeploymentLink({ name: SERVICE_NAME, stage: STAGE, tier: TIER });
 };
 
 if (require.main === module) {
