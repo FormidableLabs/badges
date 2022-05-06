@@ -6,4 +6,7 @@ jobs:
   pull_request:
     runs-on: ubuntu-latest
     steps:
-      - run : echo "Which GitHub Action runs?"
+      - name: Checkout the Repository
+        uses: actions/checkout@v2
+      - name: Run the install script
+        run: bash scripts/install.sh
