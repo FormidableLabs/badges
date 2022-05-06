@@ -1,0 +1,8 @@
+on:
+  pull_request:
+    types: [opened,reopened]
+  jobs:
+    pull_request:
+      runs-on: ubuntu-latest
+      steps:
+        - run : echo "Testing that this is working"
