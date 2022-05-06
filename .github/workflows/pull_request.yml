@@ -1,0 +1,147 @@
+on:
+  delete:
+  push:
+    branches:
+      - "master"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PRODUCTION_BRANCH: "master"
+  REPO_NAME: ${{ github.event.repository.name }}
+  PULL_REQUEST_NUMBER: ${{ github.event.number }}
+  GITHUB_ACTION: ${{ github.event.action }}
+  AWS_REGION: "us-east-1"
+  SERVICE_NAME: "badges"
+  REPO_OWNER: "FormidableLabs"
+  GITHUB_HASH: ${{ github.event.after }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  base:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show GitHub Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Checkout the Repository
+        uses: actions/checkout@v2
+
+      - name: Set environment variables
+        # https://stackoverflow.com/questions/59882715/use-environment-variable-in-github-action-if
+        # https://www.techiediaries.com/get-current-branch-name-github-actions-github_ref-bash/
+        run: |
+          if [[ $GITHUB_EVENT_NAME != 'pull_request' ]]; then
+            BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/\//-/')
+            echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+            if [[ "${GITHUB_REF#refs/heads/}" == $PRODUCTION_BRANCH ]]; then
+              TIER="prod"
+              STAGE="production"
+            else
+              TIER="nonprod"
+              STAGE="development"
+            fi
+          else
+            TIER="nonprod"
+            STAGE="development"
+          fi
+          echo "TIER=$TIER" >> $GITHUB_ENV
+          echo "STAGE=$STAGE" >> $GITHUB_ENV
+
+      - name: Run the install script
+        run: bash scripts/install.sh
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Run the yarn ci script
+        run: yarn ci
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: serverless-directory
+          path: .serverless
+          retention-days: 1
+
+      - name: Post comment on pull request
+        uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const endpoint=`https://${process.env.REPO_NAME}-${process.env.TIER}-pr${process.env.PULL_REQUEST_NUMBER}.freetls.fastly.net`
+            examples = [
+              'size/github/FormidableLabs/react-fast-compare/master/index.js',
+              'size/npm/victory/dist/victory.min.js?gzip=true',
+              'browsers?firefox=20,26&iexplore=!8,-9,10',
+              'travis/infernojs/inferno/sauce/Havunen?name=InfernoJS',
+              'sauce/Havunen?labels=none'
+            ]
+              .map(example => ({ example, url: `${endpoint}/${example}` }))
+              .map(
+                ({ example, url }) =>
+                  `- [\`${example}\`](${url}) [![example](${url})](${url})`
+              )
+              .join('\n');
+
+            const output = `## PR Deployment
+            Deployed PR environment to \`${endpoint}\`
+
+            ### Examples
+
+            ${examples}
+
+            ### Deployment
+
+            If it's ready to be deployed to production, merge to the master branch`
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+  production:
+    if: (github.ref == 'refs/heads/master') && (github.event_name == 'push')
+    needs: base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment variables
+        run: |
+          echo "BRANCH_NAME=$PRODUCTION_BRANCH" >> $GITHUB_ENV
+          echo "TIER=prod" >> $GITHUB_ENV
+          echo "STAGE=production" >> $GITHUB_ENV
+
+      - name: Show GitHub Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Checkout the Repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Run the install script
+        run: bash scripts/install.sh
+
+      - uses: actions/download-artifact@master
+        with:
+          name: serverless-directory
+          path: .serverless
+
+      - name: Copy over the serverless serverless-artifact
+        run: mv .serverless/sls*.zip serverless-artifact.zip
+
+      - name: Run the yarn cd script
+        run: yarn cd
