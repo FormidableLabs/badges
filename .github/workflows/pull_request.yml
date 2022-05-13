@@ -39,8 +39,9 @@ jobs:
             BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/\//-/')
             echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
             echo "Branch Name: $BRANCH_NAME"
+            echo "Original Branch: ${GITHUB_REF#refs/heads/}"
             echo "Production Branch: $PRODUCTION_BRANCH"
-            if [[ $BRANCH_NAME == $PRODUCTION_BRANCH ]]; then
+            if [[ "${GITHUB_REF#refs/heads/}" == $PRODUCTION_BRANCH ]]; then
               TIER="fake-prod"
               STAGE="fake-production"
             else
