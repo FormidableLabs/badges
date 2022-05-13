@@ -32,8 +32,13 @@ jobs:
       - name: Set environment variables
         # https://stackoverflow.com/questions/59882715/use-environment-variable-in-github-action-if
         # https://www.techiediaries.com/get-current-branch-name-github-actions-github_ref-bash/
-        # TODO Update stage to production
         run: |
+          # Might not have a GitHub hash if it's the first/only commit of a pull request
+          echo "GITHUB SHA: $GITHUB_SHA"
+          if [ -n "$GITHUB_HASH" ]; then
+            echo "GITHUB_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+          fi
+
           if [[ $GITHUB_EVENT_NAME != 'pull_request' ]]; then
             BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/\//-/')
             echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
