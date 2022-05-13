@@ -41,11 +41,11 @@ jobs:
             if [[ $BRANCH_NAME == $PRODUCTION_BRANCH ]]; then
               TIER="fake-prod"
               STAGE="fake-production"
-            else:
+            else
               TIER="nonprod"
               STAGE="development"
             fi
-          else:
+          else
             TIER="nonprod"
             STAGE="development"
           fi
