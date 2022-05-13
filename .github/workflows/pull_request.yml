@@ -110,7 +110,7 @@ jobs:
             })
   production:
     # TODO This will be the master branch when we go to production
-    if: (github.ref == "refs/heads/${{ process.env.PRODUCTION_BRANCH }}") && (github.event_name == 'push')
+    if: (github.ref == "refs/heads/enhancement/github-actions") && (github.event_name == 'push')
     needs: base
     runs-on: ubuntu-latest
     steps:
