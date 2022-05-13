@@ -2,13 +2,12 @@ on:
   delete:
   push:
     branches:
-      # TODO Update to Master
-      - "enhancement/github-actions"
+      - "master"
   pull_request:
   workflow_dispatch:
 
 env:
-  PRODUCTION_BRANCH: "enhancement/github-actions"
+  PRODUCTION_BRANCH: "master"
   REPO_NAME: ${{ github.event.repository.name }}
   PULL_REQUEST_NUMBER: ${{ github.event.number }}
   GITHUB_ACTION: ${{ github.event.action }}
@@ -38,12 +37,9 @@ jobs:
           if [[ $GITHUB_EVENT_NAME != 'pull_request' ]]; then
             BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/\//-/')
             echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-            echo "Branch Name: $BRANCH_NAME"
-            echo "Original Branch: ${GITHUB_REF#refs/heads/}"
-            echo "Production Branch: $PRODUCTION_BRANCH"
             if [[ "${GITHUB_REF#refs/heads/}" == $PRODUCTION_BRANCH ]]; then
-              TIER="nonprod"
-              STAGE="development"
+              TIER="prod"
+              STAGE="production"
             else
               TIER="nonprod"
               STAGE="development"
@@ -112,17 +108,15 @@ jobs:
               body: output
             })
   production:
-    # TODO This will be the master branch when we go to production
-    if: (github.ref == 'refs/heads/enhancement/github-actions') && (github.event_name == 'push')
+    if: (github.ref == 'refs/heads/master') && (github.event_name == 'push')
     needs: base
     runs-on: ubuntu-latest
     steps:
       - name: Set environment variables
-        # TODO These shouldn't be dev
         run: |
           echo "BRANCH_NAME=$PRODUCTION_BRANCH" >> $GITHUB_ENV
-          echo "TIER=nonprod" >> $GITHUB_ENV
-          echo "STAGE=development" >> $GITHUB_ENV
+          echo "TIER=prod" >> $GITHUB_ENV
+          echo "STAGE=production" >> $GITHUB_ENV
 
       - name: Show GitHub Context
         env:
