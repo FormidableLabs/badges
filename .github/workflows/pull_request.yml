@@ -42,8 +42,8 @@ jobs:
             echo "Original Branch: ${GITHUB_REF#refs/heads/}"
             echo "Production Branch: $PRODUCTION_BRANCH"
             if [[ "${GITHUB_REF#refs/heads/}" == $PRODUCTION_BRANCH ]]; then
-              TIER="fake-prod"
-              STAGE="fake-production"
+              TIER="nonprod"
+              STAGE="development"
             else
               TIER="nonprod"
               STAGE="development"
