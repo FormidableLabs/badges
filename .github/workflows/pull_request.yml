@@ -35,8 +35,10 @@ jobs:
         run: |
           # Might not have a GitHub hash if it's the first/only commit of a pull request
           echo "GITHUB SHA: $GITHUB_SHA"
-          if [ -n "$GITHUB_HASH" ]; then
-            echo "GITHUB_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+          echo "GITHUB HASH: $GITHUB_HASH"
+          echo "GITHUB HASH: $(git rev-parse HEAD)"
+          if [ -z "$GITHUB_HASH" ]; then
+            echo "GITHUB_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
           fi
 
           if [[ $GITHUB_EVENT_NAME != 'pull_request' ]]; then
