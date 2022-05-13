@@ -38,6 +38,8 @@ jobs:
           if [[ $GITHUB_EVENT_NAME != 'pull_request' ]]; then
             BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/\//-/')
             echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+            echo "Branch Name: $BRANCH_NAME"
+            echo "Production Branch: $PRODUCTION_BRANCH"
             if [[ $BRANCH_NAME == $PRODUCTION_BRANCH ]]; then
               TIER="fake-prod"
               STAGE="fake-production"
@@ -115,10 +117,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set environment variables
+        # TODO These shouldn't be dev
         run: |
           echo "BRANCH_NAME=$PRODUCTION_BRANCH" >> $GITHUB_ENV
-          echo "TIER=fake-prod" >> $GITHUB_ENV
-          echo "STAGE=fake-production" >> $GITHUB_ENV
+          echo "TIER=nonprod" >> $GITHUB_ENV
+          echo "STAGE=development" >> $GITHUB_ENV
 
       - name: Show GitHub Context
         env:
