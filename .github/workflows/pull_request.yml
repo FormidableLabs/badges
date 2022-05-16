@@ -1,6 +1,4 @@
 on:
-  # Branch deletion
-  delete:
   pull_request:
   push:
     branches:
@@ -15,7 +13,6 @@ env:
   SERVICE_NAME: "badges"
   REPO_OWNER: "FormidableLabs"
   GITHUB_HASH: ${{ github.event.after }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   base:
@@ -56,6 +53,8 @@ jobs:
           aws-region: us-east-1
 
       - name: Run the yarn ci script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn ci
 
       - uses: actions/upload-artifact@master
@@ -134,4 +133,6 @@ jobs:
         run: mv .serverless/sls*.zip serverless-artifact.zip
 
       - name: Run the yarn cd script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn cd
