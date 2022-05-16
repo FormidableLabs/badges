@@ -59,6 +59,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn ci
 
+      - name: Directory listing
+        run: ls -la && pwd
+
+      - name: Debugging
+        run: tree
+
       - uses: actions/upload-artifact@master
         with:
           name: serverless-directory
