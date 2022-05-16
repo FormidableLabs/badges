@@ -1,3 +1,5 @@
+name: github-actions-deploy
+
 on:
   pull_request:
   push:
