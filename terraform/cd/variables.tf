@@ -46,8 +46,8 @@ locals {
   account_id = data.aws_caller_identity.current.account_id
   partition  = data.aws_partition.current.partition
 
-  enabled = var.tier != "prod"
-  count   = local.enabled ? 1 : 0
+  enabled = true
+  count   = 1
 
   tags = map(
     "Service", var.service_name,
