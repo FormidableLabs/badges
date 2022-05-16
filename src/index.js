@@ -263,16 +263,6 @@ app.get(
 );
 
 app.get(
-  '/test',
-  asyncMiddleware(async (req, res) => {
-    res.status(200);
-    res.flushHeaders();
-    res.write('This is a test endpoint', 'utf8');
-    res.end();
-  })
-);
-
-app.get(
   '/browsers',
   asyncMiddleware(async (req, res) => {
     const browsers = {};
