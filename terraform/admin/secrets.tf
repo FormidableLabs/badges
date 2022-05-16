@@ -66,11 +66,6 @@ resource "aws_iam_role_policy_attachment" "secrets" {
   policy_arn = aws_iam_policy.secrets.arn
 }
 
-resource "aws_iam_role_policy_attachment" "secrets_ci" {
-  role       = aws_iam_role.ci.name
-  policy_arn = aws_iam_policy.secrets.arn
-}
-
 resource "aws_iam_policy" "secrets" {
   name   = "${local.prefix}-secrets"
   policy = data.aws_iam_policy_document.secrets.json
