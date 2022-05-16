@@ -142,6 +142,7 @@ const create = async () => {
 };
 
 const destroy = async () => {
+  log('\nDestroy function');
   // Destroy the CD pipeline for this PR.
   await execa(
     'terragrunt',
