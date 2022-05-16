@@ -1,7 +1,6 @@
 locals {
-  # Don't create a CI project in production!
-  # We only need CI in nonprod, which is allowed to deploy to production.
-  ci_count = var.tier == "prod" ? 0 : 1
+  # We always want one now as we're now deploying from production
+  ci_count = 1
 }
 
 resource "aws_s3_bucket" "artifacts" {
