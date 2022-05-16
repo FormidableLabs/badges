@@ -132,23 +132,9 @@ const create = async () => {
 
   // Upload the Serverless artifact to S3.
   await uploadArtifact({ name, tier, stage });
-
-  // Create the CD pipeline for deploying this PR to production.
-  await execa(
-    'terragrunt',
-    getTerragruntArgs('apply', 'terraform/cd'),
-    execaOpts
-  );
 };
 
 const destroy = async () => {
-  // Destroy the CD pipeline for this PR.
-  await execa(
-    'terragrunt',
-    getTerragruntArgs('destroy', 'terraform/cd'),
-    execaOpts
-  );
-
   // Destroy any Terraform accommodating this stage.
   await execa(
     'terragrunt',
