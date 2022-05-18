@@ -54,10 +54,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Run the yarn ci script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn ci
+      - name: Run yarn test
+        run: yarn test
 
       - uses: actions/upload-artifact@master
         with:
