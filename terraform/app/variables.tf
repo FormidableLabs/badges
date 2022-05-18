@@ -11,7 +11,7 @@ variable "tier" {
 }
 
 variable "stage" {
-  description = "The stage/environment to deploy to. Suggest: `pr##`, `production`. Can be dynamic."
+  description = "The stage/environment to deploy to. Suggest: `sandbox`, `development`, `staging`, `production`. Can be dynamic."
 }
 
 variable "root_domain_name" {
