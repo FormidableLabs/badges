@@ -72,9 +72,9 @@ jobs:
         run: cp .serverless/sls-*.zip serverless-artifact.zip
 
       - name: Apply Terraform
-        env:
-          STAGE: $TERRAFORM_STATE
-        run: terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
+        run: |
+          export STAGE=$TERRAFORM_STAGE
+          terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
 
       - name: Create a zip file of artifacts
         run: zip $ZIP_FILE scripts terraform/**/*.{tf,hcl} .terraform-version serverless-artifact.zip serverless.yml package.json yarn.lock
