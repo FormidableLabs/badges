@@ -23,6 +23,13 @@ jobs:
       - name: Checkout the Repository
         uses: actions/checkout@v2
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Set environment variables
         # https://stackoverflow.com/questions/59882715/use-environment-variable-in-github-action-if
         # https://www.techiediaries.com/get-current-branch-name-github-actions-github_ref-bash/
@@ -45,15 +52,12 @@ jobs:
           echo "STAGE=$STAGE" >> $GITHUB_ENV
           echo "ZIP_FILE=artifact-$REPO_NAME-$TIER-$STAGE.zip" >> $GITHUB_ENV
 
+          AWS_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
+          echo "BUCKET_NAME=tf-$REPO_NAME-$TIER-artifacts-$AWS_ACCOUNT" >> $GITHUB_ENV
+          echo "ARCHIVE_KEY=artifact-$REPO_NAME-$TIER-$STAGE.zip" >> $GITHUB_ENV
+
       - name: Run the install script
         run: bash scripts/install.sh
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
 
       - name: Yarn test
         run: yarn test
@@ -69,6 +73,9 @@ jobs:
 
       - name: Create a zip file of artifacts
         run: zip $ZIP_FILE scripts terraform/**/*.{tf,hcl} .terraform-version serverless-artifact.zip serverless.yml package.json yarn.lock
+
+      - name: Upload Artifact Zip File to S3
+        run: aws s3 cp $ZIP_FILE s3://$BUCKET_NAME/$ARCHIVE_KEY
 
       - uses: actions/upload-artifact@master
         with:
