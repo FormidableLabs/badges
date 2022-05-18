@@ -61,6 +61,9 @@ jobs:
       - name: Yarn package
         run: yarn sls package
 
+      - name: Copy the serverless artifact file
+        run: cp .serverless/sls-*.zip serverless-artifact.zip
+
       - name: Apply Terraform
         run: terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
 
