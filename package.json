@@ -11,8 +11,6 @@
     "build:docs": "doctoc --title '## Contents' README.md DEVELOPMENT.md",
     "build:tf": "terraform fmt --recursive terraform",
     "build": "yarn build:marko && yarn build:docs && yarn build:tf",
-    "ci": "node scripts/ci.js",
-    "cd": "node scripts/cd.js",
     "check": "yarn lint",
     "lint": "eslint .",
     "preversion": "yarn build",

@@ -14,11 +14,6 @@ variable "repo_url" {
   description = "The URL to the Github repo for this project."
 }
 
-variable "ci_buildspec_path" {
-  description = "The path to the buildspec for CI jobs within the repo"
-  default     = "buildspec.pr.yml"
-}
-
 variable "root_domain_name" {
   description = "The root domain name to attach a custom subdomain to for API Gateway."
 }
