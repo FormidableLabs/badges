@@ -44,12 +44,12 @@ jobs:
             else
               TIER="nonprod"
               STAGE="pr$PULL_REQUEST_NUMBER"
-              TERRAFORM_STAGE="development"
+              TERRAFORM_STAGE="$STAGE"
             fi
           else
             TIER="nonprod"
             STAGE="pr$PULL_REQUEST_NUMBER"
-            TERRAFORM_STAGE="development"
+            TERRAFORM_STAGE="$STAGE"
           fi
           echo "TIER=$TIER" >> $GITHUB_ENV
           echo "STAGE=$STAGE" >> $GITHUB_ENV
