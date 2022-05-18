@@ -1,10 +1,11 @@
 name: github-actions-deploy
 
 on:
-  pull_request:
   push:
     branches:
       - "master"
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
 
 env:
   PRODUCTION_BRANCH: "master"
@@ -17,11 +18,47 @@ env:
   GITHUB_HASH: ${{ github.event.after }}
 
 jobs:
-  base:
+  destroy:
+    if: (github.event_name == 'pull_request') && (github.event.action == 'closed')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the Repository
         uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set environment variables
+        run: |
+          echo "TIER=nonprod" >> $GITHUB_ENV
+          echo "STAGE=pr$PULL_REQUEST_NUMBER" >> $GITHUB_ENV
+
+      - name: Run the install script
+        run: bash scripts/install.sh
+
+      - name: Destroy Terraform
+        run: terragrunt destroy --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
+
+      - name: Yarn Serverless Remove
+        run: yarn sls remove
+
+  build:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the Repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
       - name: Set environment variables
         # https://stackoverflow.com/questions/59882715/use-environment-variable-in-github-action-if
@@ -35,35 +72,49 @@ jobs:
               STAGE="production"
             else
               TIER="nonprod"
-              STAGE="development"
+              STAGE="pr$PULL_REQUEST_NUMBER"
             fi
           else
             TIER="nonprod"
-            STAGE="development"
+            STAGE="pr$PULL_REQUEST_NUMBER"
           fi
           echo "TIER=$TIER" >> $GITHUB_ENV
           echo "STAGE=$STAGE" >> $GITHUB_ENV
+          echo "ZIP_FILE=artifact-$REPO_NAME-$TIER-$STAGE.zip" >> $GITHUB_ENV
+
+          AWS_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
+          echo "BUCKET_NAME=tf-$REPO_NAME-$TIER-artifacts-$AWS_ACCOUNT" >> $GITHUB_ENV
 
       - name: Run the install script
         run: bash scripts/install.sh
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+      - name: Yarn test
+        run: yarn test
 
-      - name: Run the yarn ci script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn ci
+      - name: Yarn package
+        run: yarn sls package
 
-      - uses: actions/upload-artifact@master
-        with:
-          name: serverless-directory
-          path: .serverless
-          retention-days: 1
+      - name: Copy the serverless artifact file
+        run: cp .serverless/sls-*.zip serverless-artifact.zip
+
+        # TODO
+        # Previously made sure that the CloudFormation stack was in a "ready" state before proceeding
+          # Made sure that the stack wasn't in a failed state
+        # Also used to make sure that the current commit was the most recent
+        # Both of these do not seem very helpful with the move to GitHub Actions
+
+      - name: Deploy serverless
+        run: yarn sls deploy --package .serverless
+
+      - name: Apply Terraform
+        run: |
+          terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
+
+      - name: Create a zip file of artifacts
+        run: zip $ZIP_FILE scripts terraform/**/*.{tf,hcl} .terraform-version serverless-artifact.zip serverless.yml package.json yarn.lock
+
+      - name: Upload Artifact Zip File to S3
+        run: aws s3 cp $ZIP_FILE s3://$BUCKET_NAME/$ZIP_FILE
 
       - name: Post comment on pull request
         uses: actions/github-script@0.9.0
@@ -102,39 +153,3 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
-  production:
-    if: (github.ref == 'refs/heads/master') && (github.event_name == 'push')
-    needs: base
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set environment variables
-        run: |
-          echo "BRANCH_NAME=$PRODUCTION_BRANCH" >> $GITHUB_ENV
-          echo "TIER=prod" >> $GITHUB_ENV
-          echo "STAGE=production" >> $GITHUB_ENV
-
-      - name: Checkout the Repository
-        uses: actions/checkout@v2
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Run the install script
-        run: bash scripts/install.sh
-
-      - uses: actions/download-artifact@master
-        with:
-          name: serverless-directory
-          path: .serverless
-
-      - name: Copy over the serverless serverless-artifact
-        run: mv .serverless/sls*.zip serverless-artifact.zip
-
-      - name: Run the yarn cd script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn cd
