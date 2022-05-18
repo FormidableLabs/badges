@@ -65,7 +65,7 @@ jobs:
         run: terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
 
       - name: Create a zip file of artifacts
-        run: zip ${process.env.ZIP_FILE} scripts terraform/**/*.{tf,hcl} .terraform-version serverless-artifact.zip serverless.yml package.json yarn.lock
+        run: zip $ZIP_FILE scripts terraform/**/*.{tf,hcl} .terraform-version serverless-artifact.zip serverless.yml package.json yarn.lock
 
       - uses: actions/upload-artifact@master
         with:
