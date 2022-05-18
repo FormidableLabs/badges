@@ -1,10 +1,11 @@
 name: github-actions-deploy
 
 on:
-  pull_request:
   push:
     branches:
       - "master"
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
 
 env:
   PRODUCTION_BRANCH: "master"
@@ -17,9 +18,38 @@ env:
   GITHUB_HASH: ${{ github.event.after }}
 
 jobs:
-  base:
+  destroy:
+    if: (github.event_name == 'pull_request') && (github.event.action == 'closed')
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the Repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set environment variables
+        run: |
+          echo "TIER=nonprod" >> $GITHUB_ENV
+          echo "STAGE=pr$PULL_REQUEST_NUMBER" >> $GITHUB_ENV
+
+      - name: Destroy Terraform
+        run: terragrunt destroy --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
+
+      - name: Yarn Serverless Remove
+        run: yarn sls remove
+
+  build:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debugging
+        run: echo '${{ toJSON(github) }}'
+
       - name: Checkout the Repository
         uses: actions/checkout@v2
 
@@ -125,7 +155,8 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
-  production:
+
+  deploy:
     if: (github.ref == 'refs/heads/master') && (github.event_name == 'push')
     needs: base
     runs-on: ubuntu-latest
