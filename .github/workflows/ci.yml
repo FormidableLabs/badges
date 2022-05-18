@@ -39,21 +39,17 @@ jobs:
             echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
             if [[ "${GITHUB_REF#refs/heads/}" == $PRODUCTION_BRANCH ]]; then
               TIER="prod"
-              STAGE="master"
-              TERRAFORM_STAGE="production"
+              STAGE="production"
             else
               TIER="nonprod"
               STAGE="pr$PULL_REQUEST_NUMBER"
-              TERRAFORM_STAGE="$STAGE"
             fi
           else
             TIER="nonprod"
             STAGE="pr$PULL_REQUEST_NUMBER"
-            TERRAFORM_STAGE="$STAGE"
           fi
           echo "TIER=$TIER" >> $GITHUB_ENV
           echo "STAGE=$STAGE" >> $GITHUB_ENV
-          echo "TERRAFORM_STAGE=$TERRAFORM_STAGE" >> $GITHUB_ENV
           echo "ZIP_FILE=artifact-$REPO_NAME-$TIER-$STAGE.zip" >> $GITHUB_ENV
 
           AWS_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
@@ -73,7 +69,6 @@ jobs:
 
       - name: Apply Terraform
         run: |
-          export STAGE=$TERRAFORM_STAGE
           terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
 
       - name: Create a zip file of artifacts
