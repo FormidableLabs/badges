@@ -97,7 +97,10 @@ jobs:
       - name: Copy the serverless artifact file
         run: cp .serverless/sls-*.zip serverless-artifact.zip
 
-        # TODO May want to make sure that the CloudFormation is done updating from previous runs
+        # TODO
+        # Previously made sure that the CloudFormation stack was in a "ready" state before proceeding
+          # Made sure that the stack wasn't in a failed state
+        # Also used to make sure that the current commit was the most recent
 
       - name: Deploy serverless
         run: yarn sls deploy --package .serverless
