@@ -54,11 +54,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Run yarn test
+      - name: Yarn test
         run: yarn test
 
       - name: Yarn package
         run: yarn sls package
+
+      - name: Apply Terraform
+        run: terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
 
       - uses: actions/upload-artifact@master
         with:
