@@ -43,6 +43,7 @@ jobs:
           fi
           echo "TIER=$TIER" >> $GITHUB_ENV
           echo "STAGE=$STAGE" >> $GITHUB_ENV
+          echo "ZIP_FILE=artifact-${process.env.REPO_NAME}-${process.env.TIER}-${process.env.STAGE}.zip" >> $GITHUB_ENV
 
       - name: Run the install script
         run: bash scripts/install.sh
@@ -62,6 +63,9 @@ jobs:
 
       - name: Apply Terraform
         run: terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
+
+      - name: Create a zip file of artifacts
+        run: zip ${process.env.ZIP_FILE} scripts terraform/**/*.{tf,hcl} .terraform-version serverless-artifact.zip serverless.yml package.json yarn.lock
 
       - uses: actions/upload-artifact@master
         with:
