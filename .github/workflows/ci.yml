@@ -37,6 +37,9 @@ jobs:
           echo "TIER=nonprod" >> $GITHUB_ENV
           echo "STAGE=pr$PULL_REQUEST_NUMBER" >> $GITHUB_ENV
 
+      - name: Run the install script
+        run: bash scripts/install.sh
+
       - name: Destroy Terraform
         run: terragrunt destroy --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
 
