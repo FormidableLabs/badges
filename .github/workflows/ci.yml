@@ -57,6 +57,9 @@ jobs:
       - name: Run yarn test
         run: yarn test
 
+      - name: Yarn package
+        run: yarn sls package
+
       - uses: actions/upload-artifact@master
         with:
           name: serverless-directory
