@@ -40,21 +40,25 @@ jobs:
             if [[ "${GITHUB_REF#refs/heads/}" == $PRODUCTION_BRANCH ]]; then
               TIER="prod"
               STAGE="production"
+              STAGE_NAME="$PRODUCTION_BRANCH"
             else
               TIER="nonprod"
               STAGE="development"
+              STAGE_NAME="pr$PULL_REQUEST_NUMBER"
             fi
           else
             TIER="nonprod"
             STAGE="development"
+            STAGE_NAME="pr$PULL_REQUEST_NUMBER"
           fi
           echo "TIER=$TIER" >> $GITHUB_ENV
           echo "STAGE=$STAGE" >> $GITHUB_ENV
-          echo "ZIP_FILE=artifact-$REPO_NAME-$TIER-$STAGE.zip" >> $GITHUB_ENV
+          echo "STAGE_NAME=$STAGE_NAME" >> $GITHUB_ENV
+          echo "ZIP_FILE=artifact-$REPO_NAME-$TIER-$STAGE_NAME.zip" >> $GITHUB_ENV
 
           AWS_ACCOUNT=$(aws sts get-caller-identity | jq -r .Account)
           echo "BUCKET_NAME=tf-$REPO_NAME-$TIER-artifacts-$AWS_ACCOUNT" >> $GITHUB_ENV
-          echo "ARCHIVE_KEY=artifact-$REPO_NAME-$TIER-$STAGE.zip" >> $GITHUB_ENV
+          echo "ARCHIVE_KEY=artifact-$REPO_NAME-$TIER-$STAGE_NAME.zip" >> $GITHUB_ENV
 
       - name: Run the install script
         run: bash scripts/install.sh
