@@ -67,6 +67,11 @@ jobs:
       - name: Copy the serverless artifact file
         run: cp .serverless/sls-*.zip serverless-artifact.zip
 
+        # TODO May want to make sure that the CloudFormation is done updating from previous runs
+
+      - name: Deploy serverless
+        run: yarn sls deploy --package .serverless
+
       - name: Apply Terraform
         run: |
           terragrunt apply --auto-approve --terragrunt-non-interactive --terragrunt-working-dir terraform/app
