@@ -1,3 +1,4 @@
+[![Badges — Formidable, We build the modern web](https://raw.githubusercontent.com/FormidableLabs/badges/main/badges-Hero.png)](https://formidable.com/open-source/)
 # Badges
 
 Advanced badges for your projects using Travis or Sauce Labs.
